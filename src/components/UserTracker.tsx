@@ -19,8 +19,6 @@ const UserTracker = () => {
       }
     }
   };
-
-  // Filter out the current user from the displayed tracked users
   const displayedUsers = userState.trackedUsers.filter(handle => handle !== userState.currentUser);
 
   return (

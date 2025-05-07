@@ -36,19 +36,27 @@ const Header = () => {
         <div className="flex items-center space-x-2">
           <CodeIcon className="h-8 w-8 text-primary dark:text-dark-purple" />
           <h1 className="text-xl sm:text-2xl font-bold text-primary dark:text-dark-purple">
-            Codeforces<span className="text-green-600 dark:text-dark-pink">Buddy</span>
+            CF
+            <span className="text-blue-400 dark:text-dark-blue">-</span>
+            <span className="text-green-600 dark:text-dark-pink">Buddy</span>
           </h1>
         </div>
-        
+
         <div className="flex items-center space-x-4">
-          <Button 
-            variant="ghost" 
-            size="icon" 
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={toggleTheme}
             className="text-gray-600 dark:text-dark-blue hover:bg-gray-100 dark:hover:bg-dark-blue/10 rounded-full"
-            aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            aria-label={
+              theme === "dark" ? "Switch to light mode" : "Switch to dark mode"
+            }
           >
-            {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            {theme === "dark" ? (
+              <Sun className="h-5 w-5" />
+            ) : (
+              <Moon className="h-5 w-5" />
+            )}
           </Button>
 
           {userState.currentUser ? (
@@ -56,7 +64,7 @@ const Header = () => {
               <span className="font-semibold text-green-700 dark:text-dark-green terminal-text">
                 {userState.currentUser}
               </span>
-              <Button 
+              <Button
                 variant="ghost"
                 size="icon"
                 onClick={signOut}
@@ -69,21 +77,26 @@ const Header = () => {
           ) : (
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
-                <Button variant="outline" className="border-primary dark:border-dark-purple hover:bg-primary/10 dark:hover:bg-dark-purple/20">
+                <Button
+                  variant="outline"
+                  className="border-primary dark:border-dark-purple hover:bg-primary/10 dark:hover:bg-dark-purple/20"
+                >
                   <UserIcon className="mr-2 h-4 w-4" />
                   Sign In
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-md bg-white dark:bg-dark-bg dark:border-dark-border">
                 <DialogHeader>
-                  <DialogTitle className="text-primary dark:text-dark-pink">Sign in</DialogTitle>
+                  <DialogTitle className="text-primary dark:text-dark-pink">
+                    Sign in
+                  </DialogTitle>
                 </DialogHeader>
                 <form onSubmit={handleSignIn} className="space-y-4 pt-4">
                   <div className="flex flex-col space-y-2">
                     <label className="text-sm font-medium text-gray-700 dark:text-dark-text">
                       Enter your Codeforces handle
                     </label>
-                    <Input 
+                    <Input
                       value={handle}
                       onChange={(e) => setHandle(e.target.value)}
                       placeholder="prashant.sagar.shakya"
@@ -91,7 +104,7 @@ const Header = () => {
                     />
                   </div>
                   <div className="flex justify-end">
-                    <Button 
+                    <Button
                       type="submit"
                       className="bg-primary dark:bg-dark-purple hover:bg-primary/90 dark:hover:bg-dark-purple/90"
                     >

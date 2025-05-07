@@ -39,7 +39,7 @@ export const getUserInfo = async (handle: string): Promise<CodeforcesUser> => {
 export const getUserSubmissions = async (handle: string): Promise<CodeforcesSubmission[]> => {
   try {
     // Fetch more submissions (10,000 is the max allowed by the API)
-    const response = await fetch(`${API_BASE_URL}/user.status?handle=${handle}&from=1&count=10000`);
+    const response = await fetch(`${API_BASE_URL}/user.status?handle=${handle}&from=1&count=6000`);
     return await handleResponse(response);
   } catch (error) {
     console.error(`Failed to fetch submissions for ${handle}:`, error);
