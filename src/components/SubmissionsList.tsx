@@ -386,7 +386,7 @@ const SubmissionsList: React.FC<SubmissionsListProps> = ({
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-y-2">
-        <h2 className="text-lg font-semibold text-foreground">
+        <h2 className="text-lg font-semibold text-foreground text-white">
           Problems Count: {totalProblemsCount}
         </h2>
         {userState.currentUser /* ... (Solved/Unsolved Filter Buttons - no change needed) ... */ && (
@@ -477,9 +477,9 @@ const SubmissionsList: React.FC<SubmissionsListProps> = ({
                       key={problemId}
                       className={`border-b-gray-200/30 dark:border-dark-blue/30 transition-colors ${
                         isSolvedByMainUser
-                          ? "bg-green-100 dark:bg-dark-green/40 hover:bg-green-200 dark:hover:bg-dark-green/30"
+                          ? "bg-green-300 dark:bg-dark-green/40 hover:bg-green-400 dark:hover:bg-dark-green/30"
                           : hasIncorrectByMainUser && userState.currentUser
-                          ? "bg-red-100 dark:bg-dark-red/40 hover:bg-red-200 dark:hover:bg-dark-red/30"
+                          ? "bg-red-300 dark:bg-dark-red/40 hover:bg-red-400 dark:hover:bg-dark-red/30"
                           : "hover:bg-muted/50 dark:hover:bg-dark-blue/10"
                       }`}
                     >
