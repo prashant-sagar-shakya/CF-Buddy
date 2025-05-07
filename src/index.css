@@ -1,0 +1,136 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+
+    --card: 0 0% 98%;
+    --card-foreground: 240 10% 3.9%;
+
+    --popover: 0 0% 98%;
+    --popover-foreground: 240 10% 3.9%;
+
+    --primary: 263 65% 50%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 263 65% 50%;
+
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 230 15% 15%;
+    --foreground: 210 40% 98%;
+
+    --card: 230 15% 18%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 230 15% 18%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 263 65% 70%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 225 35% 26%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 225 15% 30%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 183 65% 45%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 50.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 225 15% 25%;
+    --input: 225 15% 25%;
+    --ring: 263 65% 60%;
+
+    --radius: 0.5rem;
+  }
+
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-white text-gray-800 dark:bg-code-bg dark:text-code-text font-mono;
+  }
+
+  /* Light mode specific styles */
+  .light .problem-card {
+    @apply bg-white shadow-sm border-gray-200;
+  }
+  
+  .light .code-block {
+    @apply bg-gray-50 border-gray-200;
+  }
+}
+
+@layer components {
+  .code-block {
+    @apply font-mono rounded-md bg-gray-100 dark:bg-code-bg p-4 border border-gray-200 dark:border-code-blue;
+  }
+  
+  .problem-card {
+    @apply bg-white dark:bg-dark-card rounded-md border border-gray-200 dark:border-dark-blue p-4 transition-all duration-200 hover:shadow-md hover:shadow-primary/10 dark:hover:shadow-dark-purple/20;
+  }
+  
+  .rating-easy {
+    @apply text-green-600 dark:text-dark-green;
+  }
+  
+  .rating-medium {
+    @apply text-yellow-600 dark:text-dark-yellow;
+  }
+  
+  .rating-hard {
+    @apply text-orange-500 dark:text-dark-orange;
+  }
+  
+  .rating-expert {
+    @apply text-red-500 dark:text-dark-red;
+  }
+  
+  .terminal-text::after {
+    content: "|";
+    @apply animate-text-blink;
+  }
+
+  /* Enhanced UI components */
+  .glass-card {
+    @apply backdrop-blur-sm bg-white/90 dark:bg-dark-card/90 border border-gray-200/80 dark:border-dark-blue/80;
+  }
+  
+  .tag-badge {
+    @apply text-xs py-0.5 px-1.5 rounded bg-primary/10 text-primary/80 dark:bg-dark-blue/20 dark:text-dark-text/80;
+  }
+
+  .hover-scale {
+    @apply transition-transform duration-200 hover:scale-102;
+  }
+
+  .problem-link {
+    @apply relative inline-block after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-primary after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left;
+  }
+}
