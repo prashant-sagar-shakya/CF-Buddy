@@ -1,9 +1,5 @@
 # CF-Buddy 🚀
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-![GitHub issues](https://img.shields.io/github/issues/prashant-sagar-shakya/CF-Buddy)
-![GitHub pull requests](https://img.shields.io/github/issues-pr/prashant-sagar-shakya/CF-Buddy)
-
 **CF-Buddy** is a modern web application designed to help competitive programmers track, analyze, and compare their problem-solving progress on Codeforces. Add multiple user handles, filter problems by rating and tags, and gain insights into your and your friends' Codeforces journeys!
 
 ![Screenshot of the Application](./demo.png)
@@ -57,7 +53,7 @@ Follow these steps to get a local copy up and running:
 1.  **Clone the repository:**
 
     ```bash
-    git clone https://github.com/prashant-sagar-shakya/CF-Buddy.git
+    https://github.com/prashant-sagar-shakya/CF-Buddy.git
     cd CF-Buddy
     ```
 

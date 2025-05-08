@@ -1,8 +1,7 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { 
+import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -11,14 +10,23 @@ import {
 } from "@/components/ui/dialog";
 import { useUserContext } from "@/context/UserContext";
 import { useThemeContext } from "@/context/ThemeContext";
-import { CodeIcon, LogOut, UserIcon, Moon, Sun } from "lucide-react";
+import {
+  CodeIcon,
+  LogOut,
+  UserIcon,
+  Moon,
+  Sun,
+  BarChart3Icon,
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const Header = () => {
   const { userState, signIn, signOut } = useUserContext();
   const { theme, toggleTheme } = useThemeContext();
   const [handle, setHandle] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  
+  const navigate = useNavigate();
+
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     if (handle.trim()) {
@@ -30,10 +38,33 @@ const Header = () => {
     }
   };
 
+  const handleAnalyticsClick = () => {
+    if (userState.currentUser) {
+      navigate(`/analytics/${userState.currentUser}`);
+    } else {
+      navigate("/analytics");
+    }
+  };
+
+  const handleLogoClick = () => {
+    navigate("/");
+  };
+
   return (
     <header className="sticky top-0 z-10 bg-white/90 dark:bg-code-bg/80 backdrop-blur-sm border-b border-gray-200 dark:border-dark-border py-3 px-4 sm:px-6 shadow-sm">
       <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center space-x-2">
+        <div
+          onClick={handleLogoClick}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              handleLogoClick();
+            }
+          }}
+          className="flex items-center space-x-2 cursor-pointer"
+          role="button"
+          tabIndex={0}
+          aria-label="Go to homepage"
+        >
           <CodeIcon className="h-8 w-8 text-primary dark:text-dark-purple" />
           <h1 className="text-xl sm:text-2xl font-bold text-primary dark:text-dark-purple">
             CF
@@ -42,7 +73,7 @@ const Header = () => {
           </h1>
         </div>
 
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-2 sm:space-x-4">
           <Button
             variant="ghost"
             size="icon"
@@ -58,10 +89,28 @@ const Header = () => {
               <Moon className="h-5 w-5" />
             )}
           </Button>
+          <Button
+            variant="ghost"
+            onClick={handleAnalyticsClick}
+            className="inline-flex items-center text-gray-700 dark:text-dark-text hover:bg-gray-100 dark:hover:bg-dark-blue/10 rounded-md p-1.5 lg:px-3 lg:py-1.5"
+            aria-label="View Analytics"
+            title="Analytics"
+          >
+            <BarChart3Icon className="h-5 w-5 lg:mr-2" />
+            <span className="hidden lg:inline">Analytics</span>
+          </Button>
 
           {userState.currentUser ? (
-            <div className="flex items-center space-x-2 bg-green-50 dark:bg-dark-green/20 px-3 py-1 rounded-full">
-              <span className="font-semibold text-green-700 dark:text-dark-green terminal-text">
+            <div className="flex items-center space-x-1 sm:space-x-2 bg-green-50 dark:bg-dark-green/20 px-2 sm:px-3 py-1 rounded-full">
+              <UserIcon
+                className="block sm:hidden h-5 w-5 text-green-700 dark:text-dark-green"
+                title={userState.currentUser}
+                aria-label={`User: ${userState.currentUser}`}
+              />
+              <span
+                className="hidden sm:inline font-semibold text-green-700 dark:text-dark-green terminal-text truncate max-w-[100px] sm:max-w-[150px]"
+                title={userState.currentUser}
+              >
                 {userState.currentUser}
               </span>
               <Button
@@ -79,10 +128,10 @@ const Header = () => {
               <DialogTrigger asChild>
                 <Button
                   variant="outline"
-                  className="border-primary dark:border-dark-purple hover:bg-primary/10 dark:hover:bg-dark-purple/20"
+                  className="border-primary dark:border-dark-purple hover:bg-primary/10 dark:hover:bg-dark-purple/20 h-8 px-2 sm:h-9 sm:px-4"
                 >
-                  <UserIcon className="mr-2 h-4 w-4" />
-                  Sign In
+                  <UserIcon className="mr-0 h-4 w-4 sm:mr-2" />
+                  <span className="sm:inline">Sign In</span>
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-md bg-white dark:bg-dark-bg dark:border-dark-border">
@@ -99,14 +148,16 @@ const Header = () => {
                     <Input
                       value={handle}
                       onChange={(e) => setHandle(e.target.value)}
-                      placeholder="prashant.sagar.shakya"
+                      placeholder="your_cf_handle"
                       className="bg-gray-50 dark:bg-dark-card border-gray-300 dark:border-dark-blue focus-visible:ring-primary dark:focus-visible:ring-dark-purple"
+                      required
                     />
                   </div>
                   <div className="flex justify-end">
                     <Button
                       type="submit"
                       className="bg-primary dark:bg-dark-purple hover:bg-primary/90 dark:hover:bg-dark-purple/90"
+                      disabled={!handle.trim()}
                     >
                       Sign In
                     </Button>
