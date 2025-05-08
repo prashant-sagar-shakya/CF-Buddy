@@ -1,129 +1,169 @@
-# CF-Buddy 🚀
+# CF-Buddy 🚀 :: Analyze & Compare Codeforces Progress
 
-**CF-Buddy** is a modern web application designed to help competitive programmers track, analyze, and compare their problem-solving progress on Codeforces. Add multiple user handles, filter problems by rating and tags, and gain insights into your and your friends' Codeforces journeys!
+**CF-Buddy** is a modern web application designed for competitive programmers to track, analyze, and compare problem-solving progress on Codeforces. Add multiple user handles, filter problems by rating and tags, view consolidated lists, visualize analytics, and gain insights into your and your friends' Codeforces journeys!
 
-![Screenshot of the Application](./demo.png)
+![Screenshot of the Application](./demo.png) 
 
-## ✨ Features
+---
 
-- **Multi-User Tracking**: Add and monitor the solved problems of multiple Codeforces users.
-- **Current User Context**: Set a "current user" to highlight their solved problems or identify problems they've attempted unsuccessfully within other users' lists.
-- **Advanced Problem Filtering**:
-  - **Rating Slider**: Dynamically filter problems by a minimum and maximum rating.
-  - **Tag Selection**: Filter problems by one or more tags (e.g., "dp", "graphs", "data structures"). Tags are dynamically populated based on fetched problems.
-  - **Clear Filters**: Easily reset tag filters or all filters.
-- **Detailed Problem Lists**:
-  - View a list of solved problems for each tracked user, based on current filters.
-  - Problems are **sorted by rating** in ascending order.
-  - Information includes problem name, contest ID, index, and rating.
-  - **Visual Cues**:
-    - Problems solved by the "current user" are highlighted (e.g., green).
-    - Problems the "current user" has attempted but got incorrect submissions on are highlighted (e.g., red).
-- **Responsive Design**: User-friendly interface that works across different screen sizes.
-- **Toast Notifications**: Informative feedback for API calls and errors.
-- **Loading States**: Clear indicators when data is being fetched.
-- **Dynamic Tag Discovery**: Problem tags available for filtering are automatically discovered from users' solved problems.
+## ✨ Key Features
+
+-   **👤 Multi-User Tracking**: Add multiple Codeforces handles to monitor solved problems side-by-side.
+-   **🎯 Current User Context**: Designate a "current user" (by signing in with a handle) to:
+    -   See problems *you've solved* highlighted green in the list.
+    -   See problems *you've attempted unsuccessfully* highlighted red.
+    -   Filter the list to show only problems you *have* or *have not* solved.
+-   **📊 User Analytics Dashboard**: (Accessible via Header Button on Desktop)
+    -   **Rating History**: Visualize rating changes over time with rank color bands.
+    -   **Activity Heatmap**: See submission consistency with a GitHub-style heatmap.
+    -   **Detailed Statistics**: Track total problems solved, yearly/monthly counts, and longest solving streaks.
+    -   **Problem Difficulty Analysis**: Bar chart showing the distribution of solved problems by rating.
+    *   **Tag Analysis**: Pie/Donut chart displaying the distribution of solved problem tags.
+-   **🔍 Advanced Problem Filtering**:
+    -   **Rating Slider**: Dynamically filter problems by minimum and maximum rating.
+    -   **Tag Selection**: Filter by multiple Codeforces tags (e.g., "dp", "graphs", "data structures"). Tags are automatically populated based on the added users' solved problems.
+-   **📋 Consolidated Problem List**:
+    -   View problems solved by *any* of the tracked users (matching filters), excluding duplicates.
+    -   Clearly see *who* solved each problem (excluding the current signed-in user from this list).
+    -   Link to others' submissions (where available).
+    -   Sort problems easily by rating.
+-   **🌐 Language Localization**: Problem names and some contest details are displayed based on your browser's preferred language setting (supports English and Russian via Codeforces API).
+-   **🎨 Dark/Light Mode**: Toggle between themes for comfortable viewing.
+-   **📱 Responsive Design**: Adapts gracefully to different screen sizes (desktop, tablet, mobile).
+-   **💬 Toast Notifications**: User-friendly feedback for actions like adding users, sign-in, and API errors.
+-   **⏳ Loading States**: Clear visual indicators while data is being fetched.
+
+---
 
 ## 🛠️ Tech Stack
 
-- **Frontend**:
-  - [React](https://reactjs.org/) - A JavaScript library for building user interfaces.
-  - [TypeScript](https://www.typescriptlang.org/) - Superset of JavaScript for strong typing.
-  - [Vite](https://vitejs.dev/) (Assumed, common for modern React projects) - Next-generation frontend tooling.
-- **Styling**:
-  - [Tailwind CSS](https://tailwindcss.com/) - A utility-first CSS framework.
-  - [Shadcn/UI](https://ui.shadcn.com/) - Beautifully designed components that you can copy and paste into your apps.
-  - [Lucide React](https://lucide.dev/) - Simply beautiful open-source icons.
-- **State Management**:
-  - React Context API (`UserContext`)
-- **API**:
-  - [Codeforces API](https://codeforces.com/apiHelp) - For fetching user submissions and problem data.
-- **Utilities**:
-  - `use-toast` (from Shadcn/UI) for notifications.
+-   **Core**:
+    -   [React](https://reactjs.org/) (v18+) - UI Library
+    -   [TypeScript](https://www.typescriptlang.org/) - Static Typing
+    -   [Vite](https://vitejs.dev/) - Build Tool & Dev Server
+    -   [React Router DOM](https://reactrouter.com/) - Client-side Routing
+-   **UI & Styling**:
+    -   [Tailwind CSS](https://tailwindcss.com/) - Utility-First CSS Framework
+    -   [Shadcn/UI](https://ui.shadcn.com/) - Accessible & Reusable Component Primitives
+    -   [Lucide React](https://lucide.dev/) - Icon Library
+-   **Charting & Visualization**:
+    -   [Recharts](https://recharts.org/) - Composable Charting Library
+    -   [date-fns](https://date-fns.org/) - Modern Date Utility Library
+    -   (Optional: `react-calendar-heatmap`, `react-tooltip`)
+-   **State Management**:
+    -   React Context API (`UserContext`, `ThemeContext`)
+-   **Data Fetching & API**:
+    -   Browser `fetch` API
+    -   [Codeforces API](https://codeforces.com/apiHelp)
+-   **(Development)**
+    -   ESLint / Prettier (Assumed for code quality)
+
+---
 
 ## 📋 Prerequisites
 
-- [Node.js](https://nodejs.org/) (LTS version recommended, e.g., v18.x or v20.x)
-- [npm](https://www.npmjs.com/) or [yarn](https://classic.yarnpkg.com/)
+-   [Node.js](https://nodejs.org/) - LTS version (v18.x or v20.x recommended)
+-   [npm](https://www.npmjs.com/) (v9+) or [yarn](https://classic.yarnpkg.com/) (v1.22+)
+
+---
 
 ## 🚀 Getting Started
 
-Follow these steps to get a local copy up and running:
+Get your local copy up and running in a few steps:
 
 1.  **Clone the repository:**
-
     ```bash
-    https://github.com/prashant-sagar-shakya/CF-Buddy.git
+    git clone https://github.com/prashant-sagar-shakya/CF-Buddy.git
     cd CF-Buddy
     ```
 
 2.  **Install dependencies:**
-    Using npm:
-
-    ```bash
-    npm install
-    ```
-
-    Or using yarn:
-
-    ```bash
-    yarn install
-    ```
+    *   Using npm:
+        ```bash
+        npm install
+        ```
+    *   Or using yarn:
+        ```bash
+        yarn install
+        ```
 
 3.  **Run the development server:**
-    Using npm:
-    ```bash
-    npm run dev
-    ```
-    Or using yarn:
-    ```bash
-    yarn dev
-    ```
-    This will typically start the application on `http://localhost:5173` (or another port if specified by Vite).
+    *   Using npm:
+        ```bash
+        npm run dev
+        ```
+    *   Or using yarn:
+        ```bash
+        yarn dev
+        ```
 
-## 🎈 Usage
+4.  **Open your browser:** Navigate to `http://localhost:5173` (or the port specified in your console output).
 
-1.  **Add Codeforces Handles**: Enter one or more Codeforces handles in the designated input area.
-2.  **Set Current User (Optional)**: Select one of the added handles as the "current user" via the User Context provider (how this is implemented in UI would be detailed here - e.g., a dropdown or a settings panel).
-3.  **Apply Filters**:
-    - Adjust the **Rating Slider** to define a difficulty range.
-    - Click on **Tags** to include or exclude problems with specific topics.
-4.  **View Problem Lists**: The application will display tables of solved problems for each user (excluding the current user's separate table, as their status is shown on others' lists).
-    - Observe color highlights for problems solved or attempted by the current user.
-    - Click problem names to navigate to the problem page on Codeforces.
+---
 
-## 🧪 Running Tests (If Applicable)
+## 🎈 Usage Guide
+
+1.  **Launch:** Start the application using the steps above.
+2.  **Add Handles:** Use the input field (likely near the top) to add one or more Codeforces handles you want to track.
+3.  **Sign In (Set Current User):** Click the "Sign In" button in the header and enter *your* Codeforces handle. This handle will be used as the reference point for highlighting solved/attempted problems.
+4.  **Filter Problems:**
+    *   Use the **Rating Slider** to select a difficulty range.
+    *   Click on **Tags** in the filter section to narrow down problems by topic. Available tags update based on the problems fetched for the added handles.
+5.  **View Problem List:** The main area will display a consolidated list of problems solved by the added handles (matching your filters), sorted by rating.
+    *   Observe the green/red highlights indicating your (current user's) status on those problems.
+    *   See which *other* users solved each problem and link to their submissions.
+6.  **Explore Analytics:**
+    *   Click the **Analytics** button (📊 icon, visible on desktop in the header).
+    *   Analyze rating trends, submission activity, rating/tag distributions for the signed-in user (or navigate to `/analytics/<handle>` manually if needed).
+7.  **Toggle Theme:** Use the Sun/Moon icon in the header to switch between light and dark modes.
+
+---
+
+## 🧪 Running Tests
+
+*(This section is a placeholder. Update if you add tests.)*
 
 ```bash
-npm test
+# Example using Vitest (if configured)
+npm run test
 # or
 yarn test
 ```
 
-_(Add more details if you have specific test suites or configurations)_
+Provide details on the testing framework used (e.g., Vitest, Jest, React Testing Library) and any specific setup required.
+
+---
 
 ## 🤝 Contributing
 
-Contributions are what make the open-source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**!
+Contributions make the open-source community great! Any contributions are **welcome and greatly appreciated**.
 
-If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement".
-Don't forget to give the project a star! Thanks again!
+If you have improvements or features in mind:
 
-1.  **Fork the Project**
-2.  **Create your Feature Branch** (`git checkout -b feature/AmazingFeature`)
-3.  **Commit your Changes** (`git commit -m 'Add some AmazingFeature'`)
-4.  **Ensure code quality** (e.g., `npm run lint` or `yarn lint` if linters are set up)
-5.  **Push to the Branch** (`git push origin feature/AmazingFeature`)
-6.  **Open a Pull Request**
+1.  **Check for existing issues:** Look for related discussions or tasks.
+2.  **Fork the Project:** Create your own copy.
+3.  **Create a Feature Branch:** (`git checkout -b feature/YourAmazingFeature`)
+4.  **Make your changes:** Implement your feature or bug fix.
+5.  **Commit your Changes:** (`git commit -m 'feat: Add some AmazingFeature'`) - Follow Conventional Commits if possible.
+6.  **Ensure Code Quality:** Run linters/formatters if set up (`npm run lint` / `yarn lint`).
+7.  **Push to the Branch:** (`git push origin feature/YourAmazingFeature`)
+8.  **Open a Pull Request:** Describe your changes clearly.
 
-Please ensure your PR describes the problem and solution. Include screenshots if applicable.
+You can also open an issue with the tag "enhancement" or "bug" if you find problems or have ideas. Thank you! ⭐
+
+---
 
 ## 📜 License
 
-Distributed under the MIT License. See `LICENSE` file for more information.
+Distributed under the MIT License. See `LICENSE.md` for more information.
+
+---
 
 ## 🙏 Acknowledgements
 
-- [Codeforces API](https://codeforces.com/apiHelp) for providing the data.
-- [Shadcn/UI](https://ui.shadcn.com/) for the beautiful components.
-- [Lucide Icons](https://lucide.dev/) for the icons.
+*   **Codeforces:** For their fantastic platform and public API.
+*   **Shadcn/UI:** For the elegant component library structure.
+*   **Recharts:** For the charting capabilities.
+*   **Lucide React:** For the clean icons.
+*   **Vite Team:** For the blazing fast development experience.
+*   **Tailwind Labs:** For the utility-first CSS framework.
