@@ -28,9 +28,9 @@ const Dashboard = () => {
             Signed in as <span className="text-green-600 dark:text-dark-green">{userState.currentUser}</span>
           </h2>
           <p className="text-gray-600 dark:text-dark-text/80">
-            <span className="px-2 py-0.5 bg-green-50 dark:bg-dark-green/20 text-green-700 dark:text-dark-green rounded-md mr-2">Green</span> 
+            <span className="px-2 py-0.5 bg-green-300 dark:bg-dark-green/50 text-green-700 dark:text-dark-green rounded-md mr-2">Green</span> 
             Problems you've solved
-            <span className="px-2 py-0.5 bg-red-50 dark:bg-dark-red/20 text-red-700 dark:text-dark-red rounded-md mx-2">Red</span>
+            <span className="px-2 py-0.5 bg-red-300 dark:bg-dark-red/50 text-red-700 dark:text-dark-red rounded-md mx-2">Red</span>
             Problems you've attempted but failed
           </p>
         </div>

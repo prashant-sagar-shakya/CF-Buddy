@@ -29,18 +29,19 @@ function useDebounce<T>(value: T, delay: number): T {
 }
 const getRatingClass = (rating: number | undefined): string => {
   if (rating === undefined || rating === null)
-    return "text-gray-500 dark:text-gray-400";
+    return "text-gray-600 dark:text-gray-400";
 
-  if (rating >= 3000) return "text-cf-legendary dark:text-cf-legendary-dark";
-  if (rating >= 2600) return "text-cf-red dark:text-cf-red-dark";
-  if (rating >= 2400) return "text-cf-red dark:text-cf-red-dark";
-  if (rating >= 2300) return "text-cf-orange dark:text-cf-orange-dark";
-  if (rating >= 2100) return "text-cf-orange dark:text-cf-orange-dark";
-  if (rating >= 1900) return "text-cf-violet dark:text-cf-violet-dark";
-  if (rating >= 1600) return "text-cf-blue dark:text-cf-blue-dark";
-  if (rating >= 1400) return "text-cf-cyan dark:text-cf-cyan-dark";
-  if (rating >= 1200) return "text-cf-green dark:text-cf-green-dark";
-  return "text-cf-gray dark:text-cf-gray-dark";
+  if (rating >= 3000) return "text-[#A80000] dark:text-[#780101]";
+  if (rating >= 2600) return "text-[#E62E2E] dark:text-[#9d1f1f]";
+  if (rating >= 2400) return "text-[#F06060] dark:text-[#914242]";
+  if (rating >= 2300) return "text-[#EEA030] dark:text-[#a2691e]";
+  if (rating >= 2100) return "text-[#E8B068] dark:text-[#99713d]";
+  if (rating >= 1900) return "text-[#E566E5] dark:text-[#944f94]";
+  if (rating >= 1600) return "text-[#8888EE] dark:text-[#4e4e7c]";
+  if (rating >= 1400) return "text-[#55C0A0] dark:text-[#467f6c]";
+  if (rating >= 1200) return "text-[#55D455] dark:text-[#3d893d]";
+
+  return "text-[#A0A0A0] dark:text-[#a19d9d]";
 };
 
 const ProblemFilters: React.FC<ProblemFiltersProps> = ({

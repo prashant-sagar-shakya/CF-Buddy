@@ -1,4 +1,3 @@
-// components/charts/RatingHistoryChart.tsx
 import React, { useRef, useEffect, useState, useLayoutEffect } from "react";
 import {
   LineChart,
@@ -16,7 +15,6 @@ import { RatingDataPoint } from "@/services/analyticsHelpers";
 import { format, differenceInMonths } from "date-fns";
 import { useThemeContext } from "@/context/ThemeContext";
 
-// Helper hook to get window size
 function useWindowSize() {
   const [windowSize, setWindowSize] = useState<{
     width: number;
@@ -33,7 +31,6 @@ function useWindowSize() {
         height: window.innerHeight,
       });
     }
-    // Set size initially
     if (typeof window !== "undefined") {
       handleResize();
     }
@@ -43,127 +40,110 @@ function useWindowSize() {
   return windowSize;
 }
 
-// --- Responsive Constants ---
-const MOBILE_BREAKPOINT = 768; // pixels
-
-// Chart dimensions
+const MOBILE_BREAKPOINT = 768;
 const DESKTOP_CHART_HEIGHT = 400;
-const MOBILE_CHART_HEIGHT = 320; // Reduced height for mobile
-
+const MOBILE_CHART_HEIGHT = 320;
 const DESKTOP_CHART_MIN_WIDTH = 600;
-const MOBILE_CHART_MIN_WIDTH = 480; // Chart will be at least this wide, may scroll on small screens
-
+const MOBILE_CHART_MIN_WIDTH = 480;
 const DESKTOP_MONTH_MULTIPLIER = 90;
-const MOBILE_MONTH_MULTIPLIER = 70; // Slightly less spread per month on mobile
+const MOBILE_MONTH_MULTIPLIER = 70;
 const DESKTOP_BASE_WIDTH_OFFSET = 250;
-const MOBILE_BASE_WIDTH_OFFSET = 180; // Adjusted base width offset for mobile
-
-// Margins for LineChart
+const MOBILE_BASE_WIDTH_OFFSET = 180;
 const DESKTOP_CHART_MARGIN = { top: 25, right: 50, left: 25, bottom: 35 };
-const MOBILE_CHART_MARGIN = { top: 20, right: 20, left: 10, bottom: 30 }; // Reduced padding for mobile
-
-// XAxis
+const MOBILE_CHART_MARGIN = { top: 20, right: 20, left: 10, bottom: 30 };
 const DESKTOP_XAXIS_TICK_FONT_SIZE = 12;
 const MOBILE_XAXIS_TICK_FONT_SIZE = 10;
 const DESKTOP_XAXIS_MIN_TICK_GAP = 70;
-const MOBILE_XAXIS_MIN_TICK_GAP = 50; // Smaller gap, more ticks if possible on mobile
+const MOBILE_XAXIS_MIN_TICK_GAP = 50;
 const DESKTOP_XAXIS_DY = 12;
 const MOBILE_XAXIS_DY = 10;
-
-// YAxis
 const DESKTOP_YAXIS_WIDTH = 60;
-const MOBILE_YAXIS_WIDTH = 45; // Narrower YAxis area on mobile
+const MOBILE_YAXIS_WIDTH = 45;
 const DESKTOP_YAXIS_TICK_FONT_SIZE = 12;
 const MOBILE_YAXIS_TICK_FONT_SIZE = 10;
 const DESKTOP_YAXIS_DX = -7;
 const MOBILE_YAXIS_DX = -5;
-
-// Dots
 const DESKTOP_DOT_RADIUS = 5.5;
 const MOBILE_DOT_RADIUS = 4;
 const DESKTOP_DOT_STROKE_WIDTH = 2.5;
 const MOBILE_DOT_STROKE_WIDTH = 2;
-
 const DESKTOP_ACTIVE_DOT_RADIUS = 9;
 const MOBILE_ACTIVE_DOT_RADIUS = 7;
 const DESKTOP_ACTIVE_DOT_STROKE_WIDTH = 2.5;
 const MOBILE_ACTIVE_DOT_STROKE_WIDTH = 2;
-
-// Legend
 const DESKTOP_LEGEND_HEIGHT = 45;
-const MOBILE_LEGEND_HEIGHT = 35; // Less vertical space for legend
+const MOBILE_LEGEND_HEIGHT = 35;
 const DESKTOP_LEGEND_PADDING = { paddingBottom: "20px", paddingTop: "5px" };
-const MOBILE_LEGEND_PADDING = { paddingBottom: "15px", paddingTop: "0px" }; // Tighter legend padding
+const MOBILE_LEGEND_PADDING = { paddingBottom: "15px", paddingTop: "0px" };
 
-// RATING_THRESHOLDS and getRank are assumed to be defined as in the original problem
 export const RATING_THRESHOLDS = [
   {
     rating: 0,
     name: "Newbie",
-    color: "#cccccc",
+    color: "#A0A0A0",
     darkColor: "#a19d9d",
-    textColor: "#FFFFFF",
+    textColor: "#000000",
   },
   {
     rating: 1200,
     name: "Pupil",
-    color: "#77ff77",
+    color: "#55D455",
     darkColor: "#3d893d",
-    textColor: "#FFFFFF",
+    textColor: "#000000",
   },
   {
     rating: 1400,
     name: "Specialist",
-    color: "#77ddbb",
+    color: "#55C0A0",
     darkColor: "#467f6c",
     textColor: "#000000",
   },
   {
     rating: 1600,
     name: "Expert",
-    color: "#aaaaff",
+    color: "#8888EE",
     darkColor: "#4e4e7c",
-    textColor: "#FFFFFF",
+    textColor: "#000000",
   },
   {
     rating: 1900,
     name: "Candidate Master",
-    color: "#ff88ff",
+    color: "#E566E5",
     darkColor: "#944f94",
-    textColor: "#FFFFFF",
+    textColor: "#000000",
   },
   {
     rating: 2100,
     name: "Master",
-    color: "#ffcc88",
+    color: "#E8B068",
     darkColor: "#99713d",
     textColor: "#000000",
   },
   {
     rating: 2300,
-    name: "Int. Master",
-    color: "#ffbb55",
+    name: "International Master",
+    color: "#EEA030",
     darkColor: "#a2691e",
     textColor: "#000000",
   },
   {
     rating: 2400,
     name: "Grandmaster",
-    color: "#ff7777",
+    color: "#F06060",
     darkColor: "#914242",
-    textColor: "#FFFFFF",
+    textColor: "#000000",
   },
   {
     rating: 2600,
     name: "Int. Grandmaster",
-    color: "#ff3333",
+    color: "#E62E2E",
     darkColor: "#9d1f1f",
     textColor: "#FFFFFF",
   },
   {
     rating: 3000,
     name: "Legendary GM",
-    color: "#aa0000",
+    color: "#A80000",
     darkColor: "#780101",
     textColor: "#FFFFFF",
   },
@@ -182,6 +162,11 @@ interface Props {
   data: RatingDataPoint[];
   handle: string;
 }
+
+const INITIAL_CONTEST_NAMES_TO_FILTER = [
+  "Initial Rating",
+  "Provisional Rating",
+];
 
 const CustomTooltip: React.FC<any> = ({
   active,
@@ -204,18 +189,15 @@ const CustomTooltip: React.FC<any> = ({
 
     return (
       <div
-        className="p-3 shadow-2xl rounded-lg backdrop-blur-sm text-xs sm:text-sm" // Reduced padding and font size for tooltip
+        className="p-3 shadow-2xl rounded-lg backdrop-blur-sm text-xs sm:text-sm"
         style={{
           backgroundColor: bgColor,
-          border: `2px solid ${borderColor}`, // Thinner border
+          border: `2px solid ${borderColor}`,
           color: textColorPrimary,
         }}
       >
         <p className="font-bold mb-1 sm:mb-1.5">
-          {" "}
-          {/* Adjusted text size and margin via sm breakpoint */}
-          {format(new Date(label * 1000), "MMM d, yy, h:mm a")}{" "}
-          {/* Slightly more compact date */}
+          {format(new Date(label * 1000), "MMM d, yy, h:mm a")}
         </p>
         <div className="flex items-baseline mb-0.5 sm:mb-1">
           <span
@@ -232,20 +214,19 @@ const CustomTooltip: React.FC<any> = ({
           </span>
         </div>
         <p
-          className="text-2xs sm:text-xs font-bold tracking-wider" // Adjusted text size
+          className="text-2xs sm:text-xs font-bold tracking-wider"
           style={{ color: rankColor }}
         >
           RANK: {rank.name.toUpperCase()}
         </p>
-        {dataPoint.contestName &&
-          dataPoint.contestName !== "Initial Rating" && (
-            <p
-              className="mt-1 sm:mt-1.5 text-2xs sm:text-xs opacity-100" // Adjusted text size
-              style={{ color: textColorSecondary }}
-            >
-              Contest: {dataPoint.contestName}
-            </p>
-          )}
+        {dataPoint.contestName && (
+          <p
+            className="mt-1 sm:mt-1.5 text-2xs sm:text-xs opacity-100"
+            style={{ color: textColorSecondary }}
+          >
+            Contest: {dataPoint.contestName}
+          </p>
+        )}
       </div>
     );
   }
@@ -261,7 +242,6 @@ const CustomizedDot: React.FC<
   const rank = getRank(payload.rating);
   const fillColor = currentTheme === "dark" ? rank.darkColor : rank.color;
   const dotStroke = currentTheme === "dark" ? "#edc240" : "#edc240";
-
   const radius = isMobile ? MOBILE_DOT_RADIUS : DESKTOP_DOT_RADIUS;
   const strokeWidth = isMobile
     ? MOBILE_DOT_STROKE_WIDTH
@@ -279,16 +259,30 @@ const CustomizedDot: React.FC<
   );
 };
 
-const RatingHistoryChart: React.FC<Props> = ({ data, handle }) => {
+const RatingHistoryChart: React.FC<Props> = ({
+  data: originalData,
+  handle,
+}) => {
   const { theme } = useThemeContext();
   const currentTheme = theme || "light";
 
+  let filteredByNameData = originalData.filter((point) => {
+    if (!point.contestName) return true;
+    const contestNameLower = point.contestName.toLowerCase();
+    return !INITIAL_CONTEST_NAMES_TO_FILTER.some(
+      (filterName) => contestNameLower === filterName.toLowerCase()
+    );
+  });
+
+  // *** YEH HAI NAYA CHANGE: Sabse pehle visible point ko hatana ***
+  // Agar `filteredByNameData` mein kuch data hai, toh uska pehla element hata do
+  const data = filteredByNameData.length > 0 ? filteredByNameData.slice(1) : [];
+  // *** END OF NEW CHANGE ***
+
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const responsiveContainerRef = useRef<HTMLDivElement>(null);
-
   const windowSize = useWindowSize();
   const isMobile = windowSize.width > 0 && windowSize.width < MOBILE_BREAKPOINT;
-
   const [dynamicChartWidth, setDynamicChartWidth] = useState(
     isMobile ? MOBILE_CHART_MIN_WIDTH : DESKTOP_CHART_MIN_WIDTH
   );
@@ -302,7 +296,6 @@ const RatingHistoryChart: React.FC<Props> = ({ data, handle }) => {
       const firstDate = new Date(data[0].time * 1000);
       const lastDate = new Date(data[data.length - 1].time * 1000);
       const months = differenceInMonths(lastDate, firstDate);
-
       const monthMultiplier = currentIsMobile
         ? MOBILE_MONTH_MULTIPLIER
         : DESKTOP_MONTH_MULTIPLIER;
@@ -312,23 +305,25 @@ const RatingHistoryChart: React.FC<Props> = ({ data, handle }) => {
       const minChartWidth = currentIsMobile
         ? MOBILE_CHART_MIN_WIDTH
         : DESKTOP_CHART_MIN_WIDTH;
-
       const calculatedWidth = Math.max(
         minChartWidth,
         Math.min(4000, months * monthMultiplier + baseOffset)
       );
       setDynamicChartWidth(calculatedWidth);
+    } else if (data && data.length === 1) {
+      setDynamicChartWidth(
+        currentIsMobile ? MOBILE_CHART_MIN_WIDTH : DESKTOP_CHART_MIN_WIDTH
+      );
     } else {
       setDynamicChartWidth(
         currentIsMobile ? MOBILE_CHART_MIN_WIDTH : DESKTOP_CHART_MIN_WIDTH
       );
     }
-  }, [data, windowSize.width]); // isMobile is derived from windowSize.width
+  }, [data, windowSize.width]);
 
   useEffect(() => {
     const scrollDiv = scrollContainerRef.current;
     const chartRenderedDiv = responsiveContainerRef.current;
-
     if (scrollDiv && chartRenderedDiv) {
       let resizeTimer: NodeJS.Timeout;
       const checkWidthsAndScroll = () => {
@@ -337,17 +332,14 @@ const RatingHistoryChart: React.FC<Props> = ({ data, handle }) => {
           const chartIsWider =
             chartRenderedDiv.offsetWidth > scrollDiv.offsetWidth;
           setIsChartWiderThanContainer(chartIsWider);
-          if (chartIsWider) {
-            if (data && data.length > 0) {
-              scrollDiv.scrollLeft =
-                scrollDiv.scrollWidth - scrollDiv.clientWidth;
-            }
+          if (chartIsWider && data && data.length > 0) {
+            scrollDiv.scrollLeft =
+              scrollDiv.scrollWidth - scrollDiv.clientWidth;
           } else {
             scrollDiv.scrollLeft = 0;
           }
         }, 150);
       };
-
       checkWidthsAndScroll();
       window.addEventListener("resize", checkWidthsAndScroll);
       return () => {
@@ -360,14 +352,14 @@ const RatingHistoryChart: React.FC<Props> = ({ data, handle }) => {
   if (!data || data.length === 0) {
     return (
       <p className="text-center text-muted-foreground py-10">
-        No rating history available for {handle}.
+        No valid rating history available for {handle} to display.
       </p>
     );
   }
 
   const ratings = data.map((d) => d.rating);
-  const minRating = Math.min(...ratings);
-  const maxRating = Math.max(...ratings);
+  const minRating = ratings.length > 0 ? Math.min(...ratings) : 0;
+  const maxRating = ratings.length > 0 ? Math.max(...ratings) : 1500;
 
   const yDomainMin = Math.max(0, Math.floor(minRating / 200) * 200 - 200);
   const yDomainMax = Math.ceil(maxRating / 200) * 200 + 200;
@@ -381,7 +373,6 @@ const RatingHistoryChart: React.FC<Props> = ({ data, handle }) => {
   const axisTextColor = currentTheme === "dark" ? "#CBD5E1" : "#475569";
   const axisLineColor = currentTheme === "dark" ? "#475569" : "#CBD5E1";
 
-  // Determine responsive props
   const chartHeight = isMobile ? MOBILE_CHART_HEIGHT : DESKTOP_CHART_HEIGHT;
   const chartMargin = isMobile ? MOBILE_CHART_MARGIN : DESKTOP_CHART_MARGIN;
   const xAxisTickFontSize = isMobile
@@ -404,12 +395,9 @@ const RatingHistoryChart: React.FC<Props> = ({ data, handle }) => {
   return (
     <div
       ref={scrollContainerRef}
-      className={`
-        rating-chart-scroll-container
-        p-1 rounded-lg bg-card dark:bg-neutral-900/70 shadow-xl 
-        overflow-x-auto 
-        ${!isChartWiderThanContainer ? "flex justify-center" : ""}
-      `}
+      className={`rating-chart-scroll-container p-1 rounded-lg bg-card dark:bg-neutral-900/70 shadow-xl overflow-x-auto ${
+        !isChartWiderThanContainer ? "flex justify-center" : ""
+      }`}
       style={{
         scrollbarWidth: "thin",
         scrollbarColor: `${lineColor} ${
@@ -445,29 +433,25 @@ const RatingHistoryChart: React.FC<Props> = ({ data, handle }) => {
             <CartesianGrid
               strokeDasharray="6 6"
               stroke={gridStrokeColor}
-              strokeOpacity={1} // Original was 1, kept it. Can be 0.5 for softer grid.
+              strokeOpacity={1}
             />
-
             {RATING_THRESHOLDS.map((band, index) => {
               const y1 = band.rating;
               const y2 = RATING_THRESHOLDS[index + 1]
                 ? RATING_THRESHOLDS[index + 1].rating
                 : yDomain[1] + 500;
-
               if (y1 >= yDomain[1] || y2 <= yDomain[0]) return null;
-
               return (
                 <ReferenceArea
                   key={`band-${band.name}-${index}`}
-                  y1={Math.max(y1, yDomain[0])} // Ensure band starts within domain
-                  y2={Math.min(y2, yDomain[1])} // Ensure band ends within domain
+                  y1={Math.max(y1, yDomain[0])}
+                  y2={Math.min(y2, yDomain[1])}
                   ifOverflow="hidden"
                   fill={currentTheme === "dark" ? band.darkColor : band.color}
-                  fillOpacity={1} // Original value
+                  fillOpacity={1}
                 />
               );
             })}
-
             <XAxis
               dataKey="time"
               tickFormatter={(unixTime) =>
@@ -493,7 +477,7 @@ const RatingHistoryChart: React.FC<Props> = ({ data, handle }) => {
             />
             <YAxis
               domain={yDomain}
-              allowDataOverflow={true} // Kept original value
+              allowDataOverflow={true}
               width={yAxisWidth}
               stroke={axisLineColor}
               tick={{

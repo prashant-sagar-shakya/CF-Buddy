@@ -1,29 +1,25 @@
-// src/pages/AnalyticsPage.tsx (or components/AnalyticsPage.tsx if used within a larger page)
 import React, { useEffect, useState } from "react";
-import { useUserContext } from "@/context/UserContext"; // Adjust path
+import { useUserContext } from "@/context/UserContext";
 import {
   getUserSubmissions,
   getUniqueSolvedProblems,
   getUserRatingHistory,
-} from "@/services/codeforcesApi"; // Adjust path
+} from "@/services/codeforcesApi";
 import {
   processRatingHistory,
   processSubmissionsForAnalytics,
   OverallAnalyticsData,
   ActivityPoint,
-} from "@/services/analyticsHelpers"; // Adjust path
-import { CodeforcesSubmission, CodeforcesProblem } from "@/types/codeforces"; // Adjust path
+} from "@/services/analyticsHelpers";
 import { Loader2 } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast"; // Adjust path
+import { useToast } from "@/components/ui/use-toast";
 
-// Import chart components
 import RatingHistoryChart from "@/components/charts/RatingHistoryChart";
 import ActivityHeatmapChart from "@/components/charts/ActivityHeatmapChart";
 import ProblemRatingsBarChart from "@/components/charts/ProblemRatingsBarChart";
 import TagsSolvedPieChart from "@/components/charts/TagsSolvedPieChart";
 
 interface AnalyticsPageProps {
-  // Optionally pass a handle, or use the one from UserContext
   handleProp?: string;
 }
 
@@ -51,7 +47,6 @@ const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ handleProp }) => {
       setAnalyticsData(null);
 
       try {
-        // Fetch all necessary data in parallel
         const [submissions, ratingHistoryChanges] = await Promise.all([
           getUserSubmissions(targetHandle),
           getUserRatingHistory(targetHandle),
@@ -61,7 +56,6 @@ const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ handleProp }) => {
           submissions.filter((s) => s.verdict === "OK")
         );
 
-        // Process data
         const ratingHistory = processRatingHistory(ratingHistoryChanges);
         const submissionAnalytics = processSubmissionsForAnalytics(
           submissions,
@@ -117,6 +111,7 @@ const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ handleProp }) => {
     problemsSolvedLastMonth,
     maxStreakAllTime,
     maxStreakLastYear,
+    currentStreak,
     problemRatingDistribution,
     tagDistribution,
   } = analyticsData;
@@ -130,7 +125,6 @@ const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ handleProp }) => {
         </span>
       </h1>
 
-      {/* Section 1: Rating History */}
       <section className="p-4 sm:p-2 bg-card dark:bg-neutral-800/50 rounded-xl shadow-lg">
         <h2 className="text-2xl font-semibold mb-4 text-foreground dark:text-neutral-200">
           Rating History
@@ -138,13 +132,11 @@ const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ handleProp }) => {
         <RatingHistoryChart data={ratingHistory} handle={targetHandle!} />
       </section>
 
-      {/* Section 2: Activity Overview */}
       <section className="p-3 sm:p-4 lg:p-6 bg-card dark:bg-neutral-800/50 rounded-xl shadow-lg">
         <h2 className="text-xl sm:text-2xl font-semibold mb-4 sm:mb-6 text-center sm:text-left text-foreground dark:text-neutral-200">
           Activity Overview
         </h2>
 
-        {/* Heatmap Container (Same as previous example - scrollable) */}
         <div className="heatmap-scroll-container mb-6 lg:mb-8 p-2 bg-background dark:bg-neutral-900/50 rounded-lg overflow-x-auto scrollbar-thin scrollbar-thumb-primary/50 dark:scrollbar-thumb-dark-purple/50 scrollbar-track-transparent">
           <style>{`
         .heatmap-scroll-container::-webkit-scrollbar { height: 6px; }
@@ -156,21 +148,16 @@ const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ handleProp }) => {
           </div>
         </div>
 
-        {/* Stats Grid: Responsive columns, LARGE font size for numbers */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 text-center">
-          {/* Stat Block: Problems All Time */}
+        <div className="grid grid-cols-3 gap-3 sm:gap-4 text-center">
           <div className="p-3 bg-background dark:bg-neutral-700/60 rounded-lg">
-            {/* Keep text-3xl across all sizes */}
             <p className="text-3xl font-bold text-primary dark:text-dark-purple">
               {problemsSolvedAllTime}
             </p>
-            {/* Keep descriptive text small */}
             <p className="text-sm text-muted-foreground mt-1">
               Problems Solved (All Time)
             </p>
           </div>
 
-          {/* Stat Block: Problems Last Year */}
           <div className="p-3 bg-background dark:bg-neutral-700/60 rounded-lg">
             <p className="text-3xl font-bold text-primary dark:text-dark-purple">
               {problemsSolvedLastYear}
@@ -180,7 +167,6 @@ const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ handleProp }) => {
             </p>
           </div>
 
-          {/* Stat Block: Problems Last Month */}
           <div className="p-3 bg-background dark:bg-neutral-700/60 rounded-lg">
             <p className="text-3xl font-bold text-primary dark:text-dark-purple">
               {problemsSolvedLastMonth}
@@ -190,17 +176,15 @@ const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ handleProp }) => {
             </p>
           </div>
 
-          {/* Stat Block: Max Streak All Time */}
           <div className="p-3 bg-background dark:bg-neutral-700/60 rounded-lg">
             <p className="text-3xl font-bold text-primary dark:text-dark-purple">
               {maxStreakAllTime}
             </p>
             <p className="text-sm text-muted-foreground mt-1">
-              Max Solving Streak (Days)
+              Max Streak (All Time)
             </p>
           </div>
 
-          {/* Stat Block: Max Streak Last Year */}
           <div className="p-3 bg-background dark:bg-neutral-700/60 rounded-lg">
             <p className="text-3xl font-bold text-primary dark:text-dark-purple">
               {maxStreakLastYear}
@@ -209,10 +193,18 @@ const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ handleProp }) => {
               Max Streak (Last Year)
             </p>
           </div>
+
+          <div className="p-3 bg-background dark:bg-neutral-700/60 rounded-lg">
+            <p className="text-3xl font-bold text-primary dark:text-dark-purple">
+              {currentStreak}
+            </p>
+            <p className="text-sm text-muted-foreground mt-1">
+              Current Streak (Days)
+            </p>
+          </div>
         </div>
       </section>
 
-      {/* Section 3: Problem Details */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
         <section className="p-4 sm:p-6 bg-card dark:bg-neutral-800/50 rounded-xl shadow-lg">
           <h2 className="text-2xl font-semibold mb-4 text-foreground dark:text-neutral-200">

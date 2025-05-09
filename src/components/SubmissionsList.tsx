@@ -17,6 +17,7 @@ import {
   XCircle,
   ChevronDown,
   ChevronUp,
+  RefreshCw,
 } from "lucide-react";
 import {
   Table,
@@ -47,9 +48,26 @@ interface ConsolidatedProblemEntry {
   }>;
 }
 
-const PROBLEMS_PER_PAGE =25;
-const INITIAL_DISPLAY_LIMIT = 2; // For "Solved By (Others)" and "Submissions (Others)"
+const PROBLEMS_PER_PAGE = 25;
+const INITIAL_DISPLAY_LIMIT = 2;
 const INITIAL_TAG_LIMIT = 2;
+
+const getRatingClass = (rating: number | undefined): string => {
+  if (rating === undefined || rating === null)
+    return "text-gray-600 dark:text-gray-400";
+
+  if (rating >= 3000) return "text-[#A80000] dark:text-[#780101]";
+  if (rating >= 2600) return "text-[#E62E2E] dark:text-[#9d1f1f]";
+  if (rating >= 2400) return "text-[#F06060] dark:text-[#914242]";
+  if (rating >= 2300) return "text-[#EEA030] dark:text-[#a2691e]";
+  if (rating >= 2100) return "text-[#E8B068] dark:text-[#99713d]";
+  if (rating >= 1900) return "text-[#E566E5] dark:text-[#944f94]";
+  if (rating >= 1600) return "text-[#8888EE] dark:text-[#4e4e7c]";
+  if (rating >= 1400) return "text-[#55C0A0] dark:text-[#467f6c]";
+  if (rating >= 1200) return "text-[#55D455] dark:text-[#3d893d]";
+
+  return "text-[#A0A0A0] dark:text-[#a19d9d]";
+};
 
 const SubmissionsList: React.FC<SubmissionsListProps> = ({
   handles,
@@ -77,9 +95,6 @@ const SubmissionsList: React.FC<SubmissionsListProps> = ({
   const [currentPage, setCurrentPage] = useState(1);
   const [solvedStatusFilter, setSolvedStatusFilter] =
     useState<SolvedStatus>("all");
-  const [expandedSolvedBy, setExpandedSolvedBy] = useState<Set<string>>(
-    new Set()
-  );
   const [expandedSubmissions, setExpandedSubmissions] = useState<Set<string>>(
     new Set()
   );
@@ -87,140 +102,148 @@ const SubmissionsList: React.FC<SubmissionsListProps> = ({
 
   useEffect(() => {
     setCurrentPage(1);
-    setExpandedSolvedBy(new Set());
     setExpandedSubmissions(new Set());
     setExpandedTags(new Set());
   }, [filters, handles]);
 
   useEffect(() => {
-    setExpandedSolvedBy(new Set());
     setExpandedSubmissions(new Set());
     setExpandedTags(new Set());
   }, [currentPage]);
 
-  useEffect(() => {
-    const fetchAllData = async () => {
-      if (handles.length === 0) {
-        setProblemsData({});
-        setSubmissionsData({});
-        setAvailableTags([]);
-        setSolvedProblemsByCurrentUser(new Set());
-        setIncorrectSubmissionsForCurrentUser(new Set());
-        setInitialProblemCounts({});
-        setIsLoading(false);
-        return;
-      }
-      setIsLoading(true);
-      const loadingCounts: Record<string, number> = {};
-      handles.forEach((h) => {
-        loadingCounts[h] = initialProblemCounts[h] || 0;
-      });
-      setInitialProblemCounts(loadingCounts);
+  const fetchAllData = useCallback(async () => {
+    if (handles.length === 0) {
+      setProblemsData({});
+      setSubmissionsData({});
+      setAvailableTags([]);
+      setSolvedProblemsByCurrentUser(new Set());
+      setIncorrectSubmissionsForCurrentUser(new Set());
+      setInitialProblemCounts({});
+      setIsLoading(false);
+      return;
+    }
+    setIsLoading(true);
 
-      const fetchPromises = handles.map(async (handle) => {
-        try {
-          const userSubmissions = await getUserSubmissions(handle);
-          const acceptedUserSubmissions = userSubmissions.filter(
-            (sub) => sub.verdict === "OK"
-          );
-          const uniqueProblems = getUniqueSolvedProblems(
-            acceptedUserSubmissions
-          );
-          const tagsFromUser = new Set<string>();
-          uniqueProblems.forEach((problem) =>
-            problem.tags?.forEach((tag) => tagsFromUser.add(tag))
-          );
-
-          const incorrectSubmissionsSetForThisHandle = new Set<string>();
-          if (handle === userState.currentUser) {
-            const solvedProblemKeysForUser = new Set<string>();
-            acceptedUserSubmissions.forEach((sub) => {
-              if (sub.problem.contestId && sub.problem.index) {
-                solvedProblemKeysForUser.add(
-                  `${sub.problem.contestId}-${sub.problem.index}`
-                );
-              }
-            });
-
-            userSubmissions.forEach((submission) => {
-              if (submission.problem.contestId && submission.problem.index) {
-                const problemKey = `${submission.problem.contestId}-${submission.problem.index}`;
-                if (
-                  submission.verdict !== "OK" &&
-                  !solvedProblemKeysForUser.has(problemKey)
-                ) {
-                  incorrectSubmissionsSetForThisHandle.add(problemKey);
-                }
-              }
-            });
-          }
-          return {
-            handle,
-            submissions: userSubmissions,
-            problems: uniqueProblems,
-            tags: Array.from(tagsFromUser),
-            incorrectSubmissionsForThisHandle:
-              incorrectSubmissionsSetForThisHandle,
-            error: null,
-          };
-        } catch (error) {
-          console.error(`Error fetching data for ${handle}:`, error);
-          toast({
-            title: `Error fetching for ${handle}`,
-            description: `Could not fetch data. See console.`,
-            variant: "destructive",
-          });
-          return {
-            handle,
-            submissions: [],
-            problems: [],
-            tags: [],
-            incorrectSubmissionsForThisHandle: new Set<string>(),
-            error: error,
-          };
-        }
-      });
+    const fetchPromises = handles.map(async (handle) => {
       try {
-        const results = await Promise.all(fetchPromises);
-        const newSubmissionsLocal: Record<string, CodeforcesSubmission[]> = {};
-        const newProblemsLocal: Record<string, CodeforcesProblem[]> = {};
-        const currentInitialCountsUpdates: Record<string, number> = {};
-        const allTags = new Set<string>();
-        const finalIncorrectSetForCurrentUser = new Set<string>();
+        const userSubmissions = await getUserSubmissions(handle);
+        const acceptedUserSubmissions = userSubmissions.filter(
+          (sub) => sub.verdict === "OK"
+        );
+        const uniqueProblems = getUniqueSolvedProblems(
+          acceptedUserSubmissions
+        );
+        const tagsFromUser = new Set<string>();
+        uniqueProblems.forEach((problem) =>
+          problem.tags?.forEach((tag) => tagsFromUser.add(tag))
+        );
 
-        results.forEach((result) => {
-          newSubmissionsLocal[result.handle] = result.submissions;
-          newProblemsLocal[result.handle] = result.problems;
-          currentInitialCountsUpdates[result.handle] = result.problems.length;
-          result.tags.forEach((tag) => allTags.add(tag));
-          if (result.handle === userState.currentUser && !result.error) {
-            result.incorrectSubmissionsForThisHandle.forEach((probKey) =>
-              finalIncorrectSetForCurrentUser.add(probKey)
-            );
-          }
-        });
+        const incorrectSubmissionsSetForThisHandle = new Set<string>();
+        if (handle === userState.currentUser) {
+          const solvedProblemKeysForUser = new Set<string>();
+          acceptedUserSubmissions.forEach((sub) => {
+            if (sub.problem.contestId && sub.problem.index) {
+              solvedProblemKeysForUser.add(
+                `${sub.problem.contestId}-${sub.problem.index}`
+              );
+            }
+          });
 
-        setSubmissionsData(newSubmissionsLocal);
-        setProblemsData(newProblemsLocal);
-        setAvailableTags(Array.from(allTags).sort());
-        setIncorrectSubmissionsForCurrentUser(finalIncorrectSetForCurrentUser);
-        setInitialProblemCounts((prevCounts) => ({
-          ...prevCounts,
-          ...currentInitialCountsUpdates,
-        }));
-      } catch (overallError) {
-        console.error("Overall error processing fetched data:", overallError);
+          userSubmissions.forEach((submission) => {
+            if (submission.problem.contestId && submission.problem.index) {
+              const problemKey = `${submission.problem.contestId}-${submission.problem.index}`;
+              if (
+                submission.verdict !== "OK" &&
+                !solvedProblemKeysForUser.has(problemKey)
+              ) {
+                incorrectSubmissionsSetForThisHandle.add(problemKey);
+              }
+            }
+          });
+        }
+        return {
+          handle,
+          submissions: userSubmissions,
+          problems: uniqueProblems,
+          tags: Array.from(tagsFromUser),
+          incorrectSubmissionsForThisHandle:
+            incorrectSubmissionsSetForThisHandle,
+          error: null,
+        };
+      } catch (error) {
+        console.error(`Error fetching data for ${handle}:`, error);
         toast({
-          title: "Error",
-          description: "Failed to process some data. See console.",
+          title: `Error fetching for ${handle}`,
+          description: `Could not fetch data. See console.`,
           variant: "destructive",
         });
-      } finally {
-        setIsLoading(false);
+        return {
+          handle,
+          submissions: [],
+          problems: [],
+          tags: [],
+          incorrectSubmissionsForThisHandle: new Set<string>(),
+          error: error,
+        };
       }
-    };
+    });
+    try {
+      const results = await Promise.all(fetchPromises);
+      const newSubmissionsLocal: Record<string, CodeforcesSubmission[]> = {};
+      const newProblemsLocal: Record<string, CodeforcesProblem[]> = {};
+      const newInitialCounts: Record<string, number> = {};
+      const allTags = new Set<string>();
+      const finalIncorrectSetForCurrentUser = new Set<string>();
+
+      results.forEach((result) => {
+        newSubmissionsLocal[result.handle] = result.submissions;
+        newProblemsLocal[result.handle] = result.problems;
+        newInitialCounts[result.handle] = result.problems.length;
+        result.tags.forEach((tag) => allTags.add(tag));
+        if (result.handle === userState.currentUser && !result.error) {
+          result.incorrectSubmissionsForThisHandle.forEach((probKey) =>
+            finalIncorrectSetForCurrentUser.add(probKey)
+          );
+        }
+      });
+
+      setSubmissionsData(newSubmissionsLocal);
+      setProblemsData(newProblemsLocal);
+      setAvailableTags(Array.from(allTags).sort());
+      setIncorrectSubmissionsForCurrentUser(finalIncorrectSetForCurrentUser);
+      setInitialProblemCounts(newInitialCounts);
+    } catch (overallError) {
+      console.error("Overall error processing fetched data:", overallError);
+      toast({
+        title: "Error",
+        description: "Failed to process some data. See console.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [
+    handles,
+    toast,
+    setAvailableTags,
+    userState.currentUser,
+    setProblemsData,
+    setSubmissionsData,
+    setInitialProblemCounts,
+    setIsLoading,
+    setIncorrectSubmissionsForCurrentUser,
+  ]);
+
+  useEffect(() => {
     fetchAllData();
-  }, [handles, toast, setAvailableTags, userState.currentUser]);
+  }, [fetchAllData]);
+
+  const handleRefresh = useCallback(() => {
+    setCurrentPage(1);
+    setExpandedSubmissions(new Set());
+    setExpandedTags(new Set());
+    fetchAllData();
+  }, [fetchAllData, setCurrentPage, setExpandedSubmissions, setExpandedTags]);
 
   useEffect(() => {
     const currentUser = userState.currentUser;
@@ -243,13 +266,6 @@ const SubmissionsList: React.FC<SubmissionsListProps> = ({
     }
   }, [userState.currentUser, submissionsData]);
 
-  const toggleSolvedByExpansion = useCallback((problemId: string) => {
-    setExpandedSolvedBy((prev) => {
-      const next = new Set(prev);
-      next.has(problemId) ? next.delete(problemId) : next.add(problemId);
-      return next;
-    });
-  }, []);
   const toggleSubmissionsExpansion = useCallback((problemId: string) => {
     setExpandedSubmissions((prev) => {
       const next = new Set(prev);
@@ -257,6 +273,7 @@ const SubmissionsList: React.FC<SubmissionsListProps> = ({
       return next;
     });
   }, []);
+
   const toggleTagsExpansion = useCallback((problemId: string) => {
     setExpandedTags((prev) => {
       const next = new Set(prev);
@@ -316,9 +333,8 @@ const SubmissionsList: React.FC<SubmissionsListProps> = ({
     const currentUserHandle = userState.currentUser;
     return consolidatedProblems
       .filter((entry) => {
-        const { problemDetails, problemId, solvedBy } = entry; // Destructure solvedBy here
+        const { problemDetails, problemId, solvedBy } = entry;
 
-        // --- Standard Filters ---
         if (
           problemDetails.rating === undefined ||
           problemDetails.rating === null
@@ -343,7 +359,6 @@ const SubmissionsList: React.FC<SubmissionsListProps> = ({
           if (solvedStatusFilter === "unsolved" && isSolvedByMain) return false;
         }
 
-        // --- New Filter based on "Solved By (Others)" ---
         const isSingleCurrentUserHandleView =
           currentUserHandle &&
           handles.length === 1 &&
@@ -353,16 +368,31 @@ const SubmissionsList: React.FC<SubmissionsListProps> = ({
           (solver) => solver.handle !== currentUserHandle
         ).length;
 
-        // If not viewing only the current user's problems AND no other users solved this problem, filter it out.
         if (!isSingleCurrentUserHandleView && otherSolversCount === 0) {
           return false;
         }
 
-        return true; // If all filters pass
+        return true;
       })
       .sort(
-        (a, b) =>
-          (a.problemDetails.rating || 0) - (b.problemDetails.rating || 0)
+        (a, b) => {
+          const pA = a.problemDetails;
+          const pB = b.problemDetails;
+
+          if (pA.rating! !== pB.rating!) {
+            return pA.rating! - pB.rating!;
+          }
+          
+          const contestIdA = typeof pA.contestId === 'number' ? pA.contestId : Number.MAX_SAFE_INTEGER;
+          const contestIdB = typeof pB.contestId === 'number' ? pB.contestId : Number.MAX_SAFE_INTEGER;
+          if (contestIdA !== contestIdB) {
+            return contestIdA - contestIdB;
+          }
+
+          const indexA = pA.index ?? "";
+          const indexB = pB.index ?? "";
+          return indexA.localeCompare(indexB);
+        }
       );
   }, [
     consolidatedProblems,
@@ -370,7 +400,7 @@ const SubmissionsList: React.FC<SubmissionsListProps> = ({
     solvedStatusFilter,
     userState.currentUser,
     solvedProblemsByCurrentUser,
-    handles, // Add handles as a dependency because isSingleCurrentUserHandleView depends on it
+    handles,
   ]);
 
   const totalProblemsCount = filteredAndSortedProblems.length;
@@ -381,21 +411,6 @@ const SubmissionsList: React.FC<SubmissionsListProps> = ({
     startIndex,
     endIndex
   );
-
-  const getRatingClass = (rating: number | undefined): string => {
-    if (rating === undefined || rating === null)
-      return "text-gray-500 dark:text-gray-400";
-    if (rating >= 3000) return "text-cf-legendary dark:text-cf-legendary-dark";
-    if (rating >= 2600) return "text-cf-red dark:text-cf-red-dark";
-    if (rating >= 2400) return "text-cf-red dark:text-cf-red-dark";
-    if (rating >= 2300) return "text-cf-orange dark:text-cf-orange-dark";
-    if (rating >= 2100) return "text-cf-orange dark:text-cf-orange-dark";
-    if (rating >= 1900) return "text-cf-violet dark:text-cf-violet-dark";
-    if (rating >= 1600) return "text-cf-blue dark:text-cf-blue-dark";
-    if (rating >= 1400) return "text-cf-cyan dark:text-cf-cyan-dark";
-    if (rating >= 1200) return "text-cf-green dark:text-cf-green-dark";
-    return "text-cf-gray dark:text-cf-gray-dark";
-  };
 
   if (
     isLoading &&
@@ -450,7 +465,8 @@ const SubmissionsList: React.FC<SubmissionsListProps> = ({
                 setCurrentPage(1);
               }}
             >
-              <CheckCircle className="mr-2 h-4 w-4" /> Solved by You
+              <CheckCircle className="mr-2 h-4 w-4" />
+              <span>Solved</span>
             </Button>
             <Button
               data-state={
@@ -466,55 +482,68 @@ const SubmissionsList: React.FC<SubmissionsListProps> = ({
                 setCurrentPage(1);
               }}
             >
-              <XCircle className="mr-2 h-4 w-4" /> Unsolved by You
+              <XCircle className="mr-2 h-4 w-4" />
+              <span>Unsolved</span>
             </Button>
           </div>
         )}
       </div>
 
       {handles.length > 0 && (
-        <div className="text-sm text-muted-foreground border-b pb-2 mb-4">
-          <span className="font-medium text-foreground text-white">
-            Solved by:
-          </span>
-          {(() => {
-            const otherHandles = userState.currentUser
-              ? handles.filter((h) => h !== userState.currentUser)
-              : [...handles];
+        <div className="flex justify-between items-center text-sm text-muted-foreground border-b pb-2 mb-4">
+          <div>
+            <span className="font-medium text-foreground text-white">
+              Solved by:
+            </span>
+            {(() => {
+              const otherHandles = userState.currentUser
+                ? handles.filter((h) => h !== userState.currentUser)
+                : [...handles];
 
-            if (otherHandles.length === 0) {
-              if (
-                handles.length > 0 &&
-                userState.currentUser &&
-                handles.some((h) => h === userState.currentUser)
-              ) {
+              if (otherHandles.length === 0) {
+                if (
+                  handles.length > 0 &&
+                  userState.currentUser &&
+                  handles.some((h) => h === userState.currentUser)
+                ) {
+                  return (
+                    <span className="ml-3 italic">
+                      (No other handles to display initial counts for.)
+                    </span>
+                  );
+                }
                 return (
                   <span className="ml-3 italic">
-                    (No other handles to display initial counts for.)
+                    (No user counts to display here.)
                   </span>
                 );
               }
-              return (
-                <span className="ml-3 italic">
-                  (No user counts to display here.)
-                </span>
-              );
-            }
 
-            return otherHandles.map((handle) => (
-              <span key={handle} className="ml-3" title={handle}>
-                {handle.length > 15 ? `${handle.substring(0, 12)}...` : handle}-&gt;
-                {isLoading &&
-                (initialProblemCounts[handle] === undefined ||
-                  (initialProblemCounts[handle] === 0 &&
-                    !problemsData[handle])) ? (
-                  <Loader2 className="inline h-3 w-3 animate-spin" />
-                ) : (
-                  initialProblemCounts[handle] ?? "N/A"
-                )}
-              </span>
-            ));
-          })()}
+              return otherHandles.map((handle) => (
+                <span key={handle} className="ml-3" title={handle}>
+                  {handle.length > 15 ? `${handle.substring(0, 12)}...` : handle}
+                  -&gt;
+                  {isLoading &&
+                  (initialProblemCounts[handle] === undefined ||
+                    (initialProblemCounts[handle] === 0 &&
+                      !problemsData[handle])) ? (
+                    <Loader2 className="inline h-3 w-3 animate-spin" />
+                  ) : (
+                    initialProblemCounts[handle] ?? "N/A"
+                  )}
+                </span>
+              ));
+            })()}
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRefresh}
+            disabled={isLoading}
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+            Sync
+          </Button>
         </div>
       )}
 
@@ -537,20 +566,18 @@ const SubmissionsList: React.FC<SubmissionsListProps> = ({
             <Table className="w-full table-fixed">
               <TableHeader>
                 <TableRow className="border-b-gray-200 dark:border-dark-blue">
-                  <TableHead className="text-foreground w-[30%] xl:w-[25%]">
-                    Problem
+                  <TableHead className="text-foreground w-1/2 md:w-[30%] xl:w-[35%] text-center">
+                    Problem Name
                   </TableHead>
-                  <TableHead className="text-foreground w-[10%]">
+                  <TableHead className="text-foreground w-[20%] md:w-[10%] text-center">
                     Rating
                   </TableHead>
-                  <TableHead className="hidden md:table-cell text-foreground w-[20%]">
+                  <TableHead className="hidden md:table-cell text-foreground md:w-[30%] xl:w-[20%] text-center">
                     Tags
                   </TableHead>
-                  <TableHead className="text-foreground w-[20%]">
-                    Solved By
-                  </TableHead>
-                  <TableHead className="text-foreground w-[20%]">
-                    Submissions
+                  <TableHead className="text-foreground w-[30%] md:w-[30%] xl:w-[15%] text-center">
+                    <span className="hidden sm:inline">Submissions</span>
+                    <span className="sm:hidden">Links</span>
                   </TableHead>
                 </TableRow>
               </TableHeader>
@@ -570,23 +597,23 @@ const SubmissionsList: React.FC<SubmissionsListProps> = ({
                   let rowClassName =
                     "border-b-gray-200/30 dark:border-dark-blue/30 transition-colors hover:bg-muted/50 dark:hover:bg-dark-blue/10";
                   if (isSolvedByMainUser) {
-                    rowClassName += " bg-green-300 dark:bg-dark-green/45 hover:bg-green-400 hover:dark:bg-dark-green/40";
+                    rowClassName +=
+                      " bg-green-300 dark:bg-dark-green/45 hover:bg-green-400 hover:dark:bg-dark-green/40";
                   } else if (hasIncorrectByMainUser) {
                     rowClassName +=
                       " bg-red-300 dark:bg-dark-red/45 hover:bg-red-400 hover:dark:bg-dark-red/40";
                   }
 
                   const problemTags = problemDetails.tags || [];
-                  const isSolvedByExpanded = expandedSolvedBy.has(problemId);
                   const isSubmissionsExpanded =
                     expandedSubmissions.has(problemId);
                   const areTagsExpanded = expandedTags.has(problemId);
 
-                  const solversToDisplay = solvedBy.filter(
-                    (solver) => solver.handle !== currentUserHandle
-                  );
-                  const submissionsToDisplay = solversToDisplay.filter(
-                    (solver) => solver.submissionId && solver.contestId
+                  const submissionsToDisplay = solvedBy.filter(
+                    (solver) =>
+                      solver.handle !== currentUserHandle &&
+                      solver.submissionId &&
+                      solver.contestId
                   );
 
                   return (
@@ -604,14 +631,14 @@ const SubmissionsList: React.FC<SubmissionsListProps> = ({
                         </a>
                       </TableCell>
                       <TableCell
-                        className={`py-2 pr-1 ${getRatingClass(
+                        className={`py-2 pr-1 text-center ${getRatingClass(
                           problemDetails.rating
                         )}`}
                       >
                         {problemDetails.rating}
                       </TableCell>
                       <TableCell className="hidden md:table-cell py-2 pr-1">
-                        <div className="flex flex-wrap items-start gap-1 max-w-[150px] lg:max-w-xs">
+                        <div className="flex flex-wrap items-center justify-center gap-1 max-w-[150px] lg:max-w-xs mx-auto">
                           {(areTagsExpanded
                             ? problemTags
                             : problemTags.slice(0, INITIAL_TAG_LIMIT)
@@ -638,58 +665,17 @@ const SubmissionsList: React.FC<SubmissionsListProps> = ({
                               (
                               {areTagsExpanded
                                 ? "less"
-                                : `+${problemTags.length - INITIAL_TAG_LIMIT}`}
+                                : `+${
+                                    problemTags.length - INITIAL_TAG_LIMIT
+                                  }`}
                               )
                             </button>
                           )}
                         </div>
                       </TableCell>
                       <TableCell className="py-2 pr-1">
-                        {solversToDisplay.length > 0 ? (
-                          <div className="flex flex-col gap-0.5 text-xs">
-                            {(isSolvedByExpanded
-                              ? solversToDisplay
-                              : solversToDisplay.slice(0, INITIAL_DISPLAY_LIMIT)
-                            ).map((solver) => (
-                              <span
-                                key={solver.handle}
-                                className="block truncate"
-                                title={solver.handle}
-                              >
-                                {solver.handle}
-                              </span>
-                            ))}
-                            {solversToDisplay.length >
-                              INITIAL_DISPLAY_LIMIT && (
-                              <button
-                                onClick={() =>
-                                  toggleSolvedByExpansion(problemId)
-                                }
-                                className="text-blue-600 dark:text-blue-400 hover:underline text-xs text-left flex items-center mt-1"
-                              >
-                                {isSolvedByExpanded ? (
-                                  <ChevronUp size={14} className="mr-1" />
-                                ) : (
-                                  <ChevronDown size={14} className="mr-1" />
-                                )}
-                                {isSolvedByExpanded
-                                  ? "Show less"
-                                  : `Show ${
-                                      solversToDisplay.length -
-                                      INITIAL_DISPLAY_LIMIT
-                                    } more`}
-                              </button>
-                            )}
-                          </div>
-                        ) : (
-                          <span className="text-xs text-muted-foreground">
-                            -
-                          </span>
-                        )}
-                      </TableCell>
-                      <TableCell className="py-2 pr-1">
                         {submissionsToDisplay.length > 0 ? (
-                          <div className="flex flex-col gap-0.5">
+                          <div className="flex flex-col items-center gap-0.5">
                             {(isSubmissionsExpanded
                               ? submissionsToDisplay
                               : submissionsToDisplay.slice(
@@ -734,7 +720,7 @@ const SubmissionsList: React.FC<SubmissionsListProps> = ({
                             )}
                           </div>
                         ) : (
-                          <span className="text-xs text-muted-foreground">
+                          <span className="text-xs text-muted-foreground block text-center">
                             -
                           </span>
                         )}
@@ -777,7 +763,7 @@ const SubmissionsList: React.FC<SubmissionsListProps> = ({
       {!isLoading &&
         paginatedProblems.length === 0 &&
         handles.length > 0 &&
-        Object.keys(problemsData).length > 0 && ( // Show this if filters resulted in no problems
+        Object.keys(problemsData).length > 0 && (
           <div className="text-center py-10 border border-border rounded-md bg-card">
             <p className="text-muted-foreground">
               No problems match the current filters.
