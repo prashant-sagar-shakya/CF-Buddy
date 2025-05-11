@@ -34,7 +34,7 @@ export const DPP_LEVELS_CONFIG: DPPLevel[] = [
   // ... (Keep all your DPP_LEVELS_CONFIG levels as they were)
   {
     level: 1,
-    name: "Level 1 (800-1100)",
+    name: "Level 1 Newbie",
     ratingRange: { min: 800, max: 1100 },
     problemDistribution: [
       { rating: 800, count: 3 },
@@ -46,7 +46,7 @@ export const DPP_LEVELS_CONFIG: DPPLevel[] = [
   },
   {
     level: 2,
-    name: "Level 2 (1200-1300)",
+    name: "Level 2 Pupil",
     ratingRange: { min: 1200, max: 1300 },
     problemDistribution: [
       { rating: 1200, count: 4 },
@@ -61,7 +61,7 @@ export const DPP_LEVELS_CONFIG: DPPLevel[] = [
   },
   {
     level: 3,
-    name: "Level 3 (1400-1500)",
+    name: "Level 3 Specialist",
     ratingRange: { min: 1400, max: 1500 },
     problemDistribution: [
       { rating: 1400, count: 4 },
@@ -76,12 +76,11 @@ export const DPP_LEVELS_CONFIG: DPPLevel[] = [
   },
   {
     level: 4,
-    name: "Level 4 (1600-1800)",
-    ratingRange: { min: 1600, max: 1800 },
+    name: "Level 4 Expert",
+    ratingRange: { min: 1600, max: 1700 },
     problemDistribution: [
-      { rating: 1600, count: 3 },
-      { rating: 1700, count: 2 },
-      { rating: 1800, count: 2 },
+      { rating: 1600, count: 4 },
+      { rating: 1700, count: 3 },
     ],
     totalQuestions: 7,
     warmUp: [
@@ -92,46 +91,72 @@ export const DPP_LEVELS_CONFIG: DPPLevel[] = [
   },
   {
     level: 5,
-    name: "Level 5 (1900-2000)",
-    ratingRange: { min: 1900, max: 2000 },
+    name: "Level 5 Candidate Master",
+    ratingRange: { min: 1800, max: 1900 },
     problemDistribution: [
-      { rating: 1900, count: 4 },
-      { rating: 2000, count: 3 },
+      { rating: 1800, count: 4 },
+      { rating: 1900, count: 3 },
     ],
     totalQuestions: 7,
     warmUp: [
+      { rating: 1500, count: 1 },
       { rating: 1600, count: 1 },
       { rating: 1700, count: 1 },
-      { rating: 1800, count: 1 },
     ],
   },
   {
     level: 6,
-    name: "Level 6 (2100-2500)",
-    ratingRange: { min: 2100, max: 2500 },
+    name: "Level 6 Master",
+    ratingRange: { min: 2000, max: 2100 },
     problemDistribution: [
-      { rating: 2100, count: 2 },
-      { rating: 2200, count: 2 },
-      { rating: 2300, count: 1 },
-      { rating: 2400, count: 1 },
-      { rating: 2500, count: 1 },
+      { rating: 2000, count: 4 },
+      { rating: 2100, count: 3 },
     ],
     totalQuestions: 7,
     warmUp: [
+      { rating: 1700, count: 1 },
       { rating: 1800, count: 1 },
       { rating: 1900, count: 1 },
-      { rating: 2000, count: 1 },
     ],
   },
   {
     level: 7,
-    name: "Level 7 (2600-2900)",
-    ratingRange: { min: 2600, max: 2900 },
+    name: "Level 7 International Master",
+    ratingRange: { min: 2200, max: 2300 },
     problemDistribution: [
-      { rating: 2600, count: 2 },
+      { rating: 2200, count: 4 },
+      { rating: 2300, count: 3 },
+    ],
+    totalQuestions: 7,
+    warmUp: [
+      { rating: 1900, count: 1 },
+      { rating: 2000, count: 1 },
+      { rating: 2100, count: 1 },
+    ],
+  },
+  {
+    level: 8,
+    name: "Level 8 Grandmaster",
+    ratingRange: { min: 2400, max: 2500 },
+    problemDistribution: [
+      { rating: 2400, count: 4 },
+      { rating: 2500, count: 3 },
+    ],
+    totalQuestions: 7,
+    warmUp: [
+      { rating: 2100, count: 1 },
+      { rating: 2200, count: 1 },
+      { rating: 2300, count: 1 },
+    ],
+  },
+  {
+    level: 9,
+    name: "Level 9 International Grandmaster",
+    ratingRange: { min: 2600, max: 2800 },
+    problemDistribution: [
+      { rating: 2600, count: 3 },
       { rating: 2700, count: 2 },
       { rating: 2800, count: 2 },
-      { rating: 2900, count: 1 },
     ],
     totalQuestions: 7,
     warmUp: [
@@ -141,11 +166,12 @@ export const DPP_LEVELS_CONFIG: DPPLevel[] = [
     ],
   },
   {
-    level: 8,
-    name: "Level 8 (3000-3500)",
-    ratingRange: { min: 3000, max: 3500 },
+    level: 10,
+    name: "Level 10 Legendary Grandmaster",
+    ratingRange: { min: 2900, max: 3500 },
     problemDistribution: [
-      { rating: 3000, count: 2 },
+      { rating: 2900, count: 1 },
+      { rating: 3000, count: 1 },
       { rating: 3100, count: 1 },
       { rating: 3200, count: 1 },
       { rating: 3300, count: 1 },
@@ -154,9 +180,9 @@ export const DPP_LEVELS_CONFIG: DPPLevel[] = [
     ],
     totalQuestions: 7,
     warmUp: [
+      { rating: 2600, count: 1 },
       { rating: 2700, count: 1 },
       { rating: 2800, count: 1 },
-      { rating: 2900, count: 1 },
     ],
   },
 ];

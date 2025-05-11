@@ -1,3 +1,4 @@
+// Header.tsx
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -61,7 +62,8 @@ import { CodeforcesProblem, CodeforcesSubmission } from "@/types/codeforces";
 
 const LOCAL_STORAGE_DPP_KEY_PREFIX = "cfBuddyDailyDpp_";
 const INITIAL_DPP_TAG_LIMIT = 1;
-const CURRENT_DPP_DATA_VERSION = "1.1";
+// Updated data version to reflect changes in dppHelpers logic
+const CURRENT_DPP_DATA_VERSION = "1.2"; // Changed from "1.1"
 
 interface DppSetState {
   mainProblems: DppHelperDppProblemEntry[];
@@ -173,6 +175,8 @@ const Header = () => {
       const storedSetForLevel = currentDailyStorage.generatedSets[levelKey];
       const problemsFromLS = storedSetForLevel.problems;
 
+      // The existing check is reasonable. `solvedByElite` key presence is a basic check.
+      // The main driver for invalidation due to logic change is the version number.
       const firstProblem =
         problemsFromLS.mainProblems?.[0] || problemsFromLS.warmUpProblems?.[0];
       const isDataStructureValid =
@@ -408,10 +412,14 @@ const Header = () => {
         description:
           "A DPP for this level was already generated or loaded for today. Regenerate if you want a new set.",
       });
-      return;
+      // Allow regeneration even if already generated, so don't return early.
+      // The button text changes to "Regenerate Set".
+      // The actual check for whether to proceed with generation or not is handled by isGenerateDppButtonDisabled logic for enabling/disabling the button
+      // and the explicit intent of the user clicking "Regenerate Set".
+      // For safety, we will proceed as if a new set is requested.
     }
     if (isLoadedDppStale) {
-      setIsLoadedDppStale(false);
+      setIsLoadedDppStale(false); // Will be regenerated, so not stale anymore.
     }
 
     if (allProblemsCache.length === 0 || isLoadingInitialData) {
@@ -435,6 +443,7 @@ const Header = () => {
         variant: "warning",
         duration: 7000,
       });
+      // Do not return here, allow generation attempt, generateDppSet will likely return empty.
     }
 
     setIsLoadingDpp(true);
@@ -459,7 +468,7 @@ const Header = () => {
             toast({
               title: "No Problems Generated",
               description:
-                "Could not find problems. This might be due to issues fetching elite user solutions. Try again or check console logs.",
+                "Could not find problems. This might be due to issues fetching elite user solutions. The new DPP logic requires problems to have known elite solutions.",
               variant: "warning",
               duration: 10000,
             });
@@ -476,7 +485,7 @@ const Header = () => {
 
         setDppProblems(generatedSet as DppSetState);
         setIsDppGeneratedForSelectedLevelToday(true);
-        setIsLoadedDppStale(false);
+        setIsLoadedDppStale(false); // Mark as not stale after generation
 
         const userDppKey = getLocalStorageKeyForUserDpp();
         if (userDppKey) {
@@ -539,7 +548,7 @@ const Header = () => {
     toast,
     setIsDppDialogOpen,
     setIsSignInDialogOpen,
-    isDppGeneratedForSelectedLevelToday,
+    isDppGeneratedForSelectedLevelToday, // Used to determine button text, not to block regeneration
     isLoadedDppStale,
     setIsLoadedDppStale,
     allProblemsCache,
@@ -557,7 +566,7 @@ const Header = () => {
     (levelValue: string) => {
       const levelNum = parseInt(levelValue, 10);
       const newLevel =
-        DPP_LEVELS_CONFIG.find((l) => l.level === levelNum) ||
+        DPP_LEVELS_CONFIG.find((l) => l.level.toString() === levelValue) || // Match by string value from select
         DPP_LEVELS_CONFIG[0];
       setSelectedDppLevel(newLevel);
     },
@@ -580,20 +589,23 @@ const Header = () => {
   );
 
   const isGenerateDppButtonDisabled = useMemo(() => {
+    // Button should be disabled if loading, or if essential data isn't ready and not loading.
+    // It should NOT be disabled if a DPP is already generated but the user wants to regenerate.
     return (
       isLoadingDpp ||
       isLoadingInitialData ||
       !userState.currentUser ||
-      (allProblemsCache.length === 0 && !isLoadingInitialData) ||
-      (isDppGeneratedForSelectedLevelToday && !isLoadedDppStale)
+      (allProblemsCache.length === 0 && !isLoadingInitialData)
+      // Removed: (isDppGeneratedForSelectedLevelToday && !isLoadedDppStale)
+      // This condition prevented regeneration. Now, the button text changes and allows regeneration.
     );
   }, [
     isLoadingDpp,
     isLoadingInitialData,
     userState.currentUser,
     allProblemsCache.length,
-    isDppGeneratedForSelectedLevelToday,
-    isLoadedDppStale,
+    // isDppGeneratedForSelectedLevelToday, // No longer makes button disabled
+    // isLoadedDppStale, // No longer makes button disabled
   ]);
 
   const renderProblemTable = useCallback(
@@ -636,7 +648,7 @@ const Header = () => {
                   const areTagsExpanded =
                     expandedDppProblemTags.has(problemKey);
                   const problemUrl = `https://codeforces.com/problemset/problem/${p.contestId}/${p.index}`;
-                  const eliteSolvers = p.solvedByElite || [];
+                  const eliteSolvers = p.solvedByElite || []; // Still safe with || [], though new helper guarantees non-empty array if present.
 
                   return (
                     <TableRow
@@ -834,7 +846,9 @@ const Header = () => {
                   Daily Practice Problems (DPP)
                 </DialogTitle>
                 <DialogDescription className="dark:text-gray-400 text-xs sm:text-sm">
-                  Log in to Codeforces in your browser to view solutions.
+                  ⚠️ Select level according to your current ranking
+                  <br />
+                  ⚠️ Log in to Codeforces in your browser to view solutions.
                 </DialogDescription>
               </DialogHeader>
               <div className="flex-grow overflow-y-auto px-6 py-4 space-y-4 sm:space-y-6 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
@@ -859,7 +873,7 @@ const Header = () => {
                     <SelectContent className="bg-white dark:bg-dark-card dark:border-dark-blue max-h-60">
                       {DPP_LEVELS_CONFIG.map((lvl) => (
                         <SelectItem
-                          key={lvl.level}
+                          key={`${lvl.name}-${lvl.level}`} // Use a more unique key if level numbers can be duplicated across names
                           value={lvl.level.toString()}
                           className="focus:bg-teal-100 dark:focus:bg-teal-700/50"
                         >
@@ -882,9 +896,7 @@ const Header = () => {
                     ) : (
                       <Wrench className="mr-2 h-4 w-4" />
                     )}
-                    {isLoadedDppStale
-                      ? "Regenerate Set"
-                      : isDppGeneratedForSelectedLevelToday
+                    {isLoadedDppStale || isDppGeneratedForSelectedLevelToday
                       ? "Regenerate Set"
                       : "Generate Set"}
                   </Button>
@@ -952,8 +964,8 @@ const Header = () => {
                           ELITE_USERS_FROM_HELPER.length > 0 &&
                           !isLoadingInitialData
                         ? "Elite user solutions could not be fully loaded. DPP generation may be incomplete. You can still try generating a set."
-                        : isDppGeneratedForSelectedLevelToday
-                        ? `DPP for ${selectedDppLevel.name} was generated but is currently empty or not displayed. Try regenerating.`
+                        : isDppGeneratedForSelectedLevelToday // This case means dppProblems is null, but it was "generated" (i.e., loaded from LS but then cleared due to version/stale)
+                        ? `DPP for ${selectedDppLevel.name} needs to be regenerated or was empty.`
                         : 'Select a level and click "Generate Set" to get your daily problems.'}
                     </div>
                   )}
