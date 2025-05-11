@@ -1,3 +1,4 @@
+"use client";
 import React from "react";
 import {
   BarChart,
@@ -6,13 +7,12 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
-  Cell,
   LabelList,
+  Cell,
 } from "recharts";
-import { ProblemStats } from "@/services/analyticsHelpers";
 import { useThemeContext } from "@/context/ThemeContext";
+import tinycolor from "tinycolor2";
 
 export const RATING_THRESHOLDS = [
   {
@@ -87,52 +87,40 @@ export const RATING_THRESHOLDS = [
   },
 ];
 
-export const getRank = (rating: number): (typeof RATING_THRESHOLDS)[0] => {
+export const getRank = (rating: number) => {
   for (let i = RATING_THRESHOLDS.length - 1; i >= 0; i--) {
-    if (rating >= RATING_THRESHOLDS[i].rating) {
-      return RATING_THRESHOLDS[i];
-    }
+    if (rating >= RATING_THRESHOLDS[i].rating) return RATING_THRESHOLDS[i];
   }
   return RATING_THRESHOLDS[0];
 };
 
-interface Props {
-  data: ProblemStats[];
-}
-
-const CustomBarTooltip: React.FC<any> = ({ active, payload, label }) => {
-  const themeContext = useThemeContext ? useThemeContext() : { theme: "light" };
-  const theme = themeContext.theme || "light";
-
+const CustomBarTooltip = ({ active, payload }) => {
+  const { theme } = useThemeContext();
   if (active && payload && payload.length) {
-    const dataPoint = payload[0].payload as ProblemStats;
-    const ratingValue = dataPoint.rating;
-    const problemsCount = payload[0].value;
-
-    const rank = getRank(ratingValue);
+    const dataPoint = payload[0].payload;
+    const rank = getRank(dataPoint.rating);
     const rankColor = theme === "dark" ? rank.darkColor : rank.color;
     const bgColor =
       theme === "dark" ? "rgba(40, 42, 54, 0.98)" : "rgba(255, 255, 255, 0.98)";
-    const textColorPrimary = theme === "dark" ? "#f8f8f2" : "#282a36";
-
+    const textColor = theme === "dark" ? "#f8f8f2" : "#282a36";
     return (
       <div
         className="p-3 shadow-xl rounded-lg backdrop-blur-sm"
         style={{
           backgroundColor: bgColor,
           borderLeft: `4px solid ${rankColor}`,
-          color: textColorPrimary,
+          color: textColor,
         }}
       >
         <p className="font-semibold text-sm mb-1">
           Rating:{" "}
           <span style={{ color: rankColor, fontWeight: "bold" }}>
-            {ratingValue}
+            {dataPoint.rating}
           </span>{" "}
           ({rank.name})
         </p>
         <p className="text-sm">
-          Problems Solved: <span className="font-bold">{problemsCount}</span>
+          Problems Solved: <span className="font-bold">{payload[0].value}</span>
         </p>
       </div>
     );
@@ -140,122 +128,70 @@ const CustomBarTooltip: React.FC<any> = ({ active, payload, label }) => {
   return null;
 };
 
-const VerticalBarLabel: React.FC<any> = (props) => {
-  const { x, y, width, height, index, payload } = props;
-
-  if (!payload || typeof payload.rating !== "number") {
+const SmartBarLabel = (props) => {
+  const { x, y, width, height, value, payload } = props;
+  if (!payload || typeof payload.rating !== "number" || !value || value === 0)
     return null;
-  }
-
-  const ratingValue = payload.rating;
-  const themeContext = useThemeContext ? useThemeContext() : { theme: "light" };
-  const theme = themeContext.theme || "light";
-
-  const rank = getRank(ratingValue);
+  const { theme } = useThemeContext();
+  const rank = getRank(payload.rating);
   const barBgColor = theme === "dark" ? rank.darkColor : rank.color;
-
-  const isDarkBg = (colorHex: string) => {
-    if (!colorHex || colorHex.length < 6) return false;
-    const hex = colorHex.replace("#", "");
-    let r: number, g: number, b: number;
-    if (hex.length === 3) {
-      r = parseInt(hex.substring(0, 1) + hex.substring(0, 1), 16);
-      g = parseInt(hex.substring(1, 2) + hex.substring(1, 2), 16);
-      b = parseInt(hex.substring(2, 3) + hex.substring(2, 3), 16);
-    } else if (hex.length === 6) {
-      r = parseInt(hex.substring(0, 2), 16);
-      g = parseInt(hex.substring(2, 4), 16);
-      b = parseInt(hex.substring(4, 6), 16);
-    } else {
-      return false; // Invalid hex length
-    }
-    const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-    return luminance < 140;
-  };
-
-  const labelColor = isDarkBg(barBgColor) ? "#FFFFFF" : "#000000";
-  const ratingString = ratingValue.toString();
-  const labelFontSize = Math.max(
-    8,
-    Math.min(12, width - 6, height / (ratingString.length * 0.7 + 3))
-  );
-  const estimatedTextHeight = ratingString.length * labelFontSize * 0.6;
-  const showLabel =
-    height > Math.max(20, estimatedTextHeight + 10) &&
-    width > 12 &&
-    labelFontSize >= 8;
-
-  if (!showLabel) {
-    return null;
-  }
-
-  const textContent = ratingString;
+  const luminance = tinycolor(barBgColor).getLuminance();
+  const labelColor = luminance < 0.5 ? "#FFFFFF" : "#000000";
+  const fontSize = Math.max(8, Math.min(10, width - 5));
   const textX = x + width / 2;
-  const textY = y + height - 7;
-
+  const textY = height > fontSize + 6 ? y + height - fontSize / 2 - 5 : y - 6;
   return (
     <text
       x={textX}
       y={textY}
-      transform={`rotate(-90, ${textX}, ${textY})`}
       fill={labelColor}
-      fontSize={labelFontSize}
+      fontSize={fontSize}
       fontWeight="bold"
-      textAnchor="end"
+      textAnchor="middle"
       dominantBaseline="middle"
     >
-      {textContent}
+      {value}
     </text>
   );
 };
 
-const ProblemRatingsBarChart: React.FC<Props> = ({ data }) => {
+const ProblemRatingsBarChart = ({ data }) => {
   const { theme } = useThemeContext();
-
-  if (!data || data.length === 0) {
+  if (!data || data.length === 0)
     return (
       <p className="text-center text-muted-foreground py-10">
         No problem rating data available.
       </p>
     );
-  }
 
   const sortedData = [...data].sort((a, b) => a.rating - b.rating);
-
   const gridStrokeColor =
     theme === "dark" ? "rgba(100, 116, 139, 0.2)" : "rgba(203, 213, 225, 0.3)";
   const axisTextColor = theme === "dark" ? "#CBD5E1" : "#475569";
   const axisLineColor = theme === "dark" ? "#475569" : "#CBD5E1";
 
   return (
-    <div className="p-1 rounded-lg bg-card dark:bg-neutral-800/30 shadow-sm h-[350px] sm:h-[400px]">
+      <div className="h-[380px] sm:h-[420px]">
+
       <ResponsiveContainer width="100%" height="100%">
         <BarChart
           data={sortedData}
-          margin={{ top: 20, right: 30, left: 10, bottom: 5 }}
+          margin={{ top: 30, right: 20, left: 10, bottom: 15 }}
           barGap={2}
-          barCategoryGap="15%"
+          barCategoryGap="20%"
         >
-          <CartesianGrid
-            strokeDasharray="4 4"
-            stroke={gridStrokeColor}
-            strokeOpacity={0.7}
-          />
+          <CartesianGrid strokeDasharray="3 3" stroke={gridStrokeColor} />
           <XAxis
             dataKey="rating"
-            axisLine={{ stroke: axisLineColor, strokeWidth: 1 }}
-            tickLine={false}
-            tick={false}
-            height={10}
+            axisLine={{ stroke: axisLineColor }}
+            tick={{ fontSize: 10, fill: axisTextColor }}
+            height={20}
           />
           <YAxis
             allowDecimals={false}
-            width={45}
-            stroke={axisLineColor}
-            tick={{ fontSize: 11, fill: axisTextColor, fontWeight: 500 }}
-            dx={-3}
-            axisLine={{ stroke: axisLineColor, strokeWidth: 1 }}
-            tickLine={{ stroke: axisLineColor, strokeWidth: 1 }}
+            axisLine={{ stroke: axisLineColor }}
+            tick={{ fontSize: 10, fill: axisTextColor }}
+            width={40}
           />
           <Tooltip
             content={<CustomBarTooltip />}
@@ -265,31 +201,19 @@ const ProblemRatingsBarChart: React.FC<Props> = ({ data }) => {
                   ? "rgba(100,116,139,0.1)"
                   : "rgba(203,213,225,0.2)",
             }}
-            wrapperStyle={{ outline: "none" }}
-            animationDuration={150}
           />
-          <Legend
-            verticalAlign="top"
-            align="right"
-            height={30}
-            iconSize={12}
-            formatter={(value) => (
-              <span className="text-xs font-semibold text-foreground dark:text-neutral-300 ml-1">
-                {value}
-              </span>
-            )}
-          />
-          <Bar dataKey="count" name="Problems Solved" radius={[4, 4, 0, 0]}>
+          <Bar dataKey="count" radius={[4, 4, 0, 0]}>
             {sortedData.map((entry, index) => {
               const rank = getRank(entry.rating);
               const barColor = theme === "dark" ? rank.darkColor : rank.color;
               return <Cell key={`cell-${index}`} fill={barColor} />;
             })}
-            <LabelList dataKey="rating" content={<VerticalBarLabel />} />
+            <LabelList dataKey="count" content={<SmartBarLabel />} />
           </Bar>
         </BarChart>
       </ResponsiveContainer>
     </div>
   );
 };
+
 export default ProblemRatingsBarChart;

@@ -208,7 +208,7 @@ const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ handleProp }) => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
         <section className="p-4 sm:p-6 bg-card dark:bg-neutral-800/50 rounded-xl shadow-lg">
           <h2 className="text-2xl font-semibold mb-4 text-foreground dark:text-neutral-200">
-            Problem Ratings Solved
+            Solved by Rating
           </h2>
           <ProblemRatingsBarChart data={problemRatingDistribution} />
         </section>

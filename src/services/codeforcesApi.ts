@@ -2,6 +2,7 @@ import {
   CodeforcesSubmission,
   CodeforcesUser,
   CodeforcesProblem,
+  CodeforcesRatingChange, // Assuming this is defined in your types file
 } from "@/types/codeforces";
 
 const API_BASE_URL = "https://codeforces.com/api";
@@ -16,29 +17,33 @@ const getApiLanguage = (): "en" | "ru" => {
   return "en";
 };
 
+// Primary error handler for API responses
 const handleResponse = async (response: Response) => {
   if (!response.ok) {
     if (response.status === 429) {
       throw new Error(
-        "Rate limit exceeded. Please try again in a few moments."
+        "Rate limit exceeded from Codeforces API. Please try again in a few moments."
       );
     }
     let errorComment = "API request failed";
     try {
-      const errorData = await response.json();
+      const errorData = await response.json(); // Attempt to parse error details
       errorComment =
         errorData.comment ||
-        `API Error: ${response.status} ${response.statusText}`;
+        `Codeforces API Error: ${response.status} ${response.statusText}`;
     } catch (e) {
-      errorComment = `API Error: ${response.status} ${response.statusText}`;
+      // If parsing errorData fails, use the response status text
+      errorComment = `Codeforces API Error: ${response.status} ${response.statusText}`;
     }
     throw new Error(errorComment);
   }
   const data = await response.json();
   if (data.status === "FAILED") {
-    throw new Error(data.comment || "Codeforces API request failed");
+    throw new Error(
+      data.comment || "Codeforces API request indicated failure."
+    );
   }
-  return data.result;
+  return data.result; // Returns the 'result' field from the CF API response
 };
 
 export const getUserInfo = async (handle: string): Promise<CodeforcesUser> => {
@@ -46,11 +51,21 @@ export const getUserInfo = async (handle: string): Promise<CodeforcesUser> => {
   const response = await fetch(
     `${API_BASE_URL}/user.info?handles=${handle}&lang=${lang}`
   );
-  const result = await handleResponse(response);
+  const result = await handleResponse(response); // handleResponse will throw on error
+
   if (!result || result.length === 0) {
+    // This is a valid API response (status OK), but user not found
     throw new Error(`User with handle "${handle}" not found.`);
   }
-  return result[0];
+  const userInfo = result[0];
+  return {
+    ...userInfo,
+    rank: userInfo.rank || "Unranked",
+    rating: userInfo.rating || 0,
+    maxRank: userInfo.maxRank || "Unranked",
+    maxRating: userInfo.maxRating || 0,
+    friendOfCount: userInfo.friendOfCount || 0,
+  } as CodeforcesUser;
 };
 
 export const getUserSubmissions = async (
@@ -59,51 +74,63 @@ export const getUserSubmissions = async (
   const lang = getApiLanguage();
   const apiUrl = `${API_BASE_URL}/user.status?handle=${handle}&from=1&count=10000&lang=${lang}`;
   const response = await fetch(apiUrl);
-  const submissionsResult = await handleResponse(response);
+  const submissionsResult = await handleResponse(response); // handleResponse throws
+
   return submissionsResult.map(
     (sub: any) =>
       ({
         ...sub,
+        id: sub.id || 0,
+        creationTimeSeconds: sub.creationTimeSeconds || 0,
+        relativeTimeSeconds: sub.relativeTimeSeconds || 0,
         problem: {
-          ...sub.problem,
-          tags: Array.isArray(sub.problem.tags) ? sub.problem.tags : [],
+          contestId: sub.problem?.contestId,
+          index: sub.problem?.index,
+          name: sub.problem?.name || "Unknown Problem",
+          type: sub.problem?.type,
+          points: sub.problem?.points,
+          rating: sub.problem?.rating,
+          tags: Array.isArray(sub.problem?.tags) ? sub.problem.tags : [],
         },
+        author: {
+          contestId: sub.author?.contestId,
+          members: Array.isArray(sub.author?.members)
+            ? sub.author.members
+            : [{ handle: "Unknown" }],
+          participantType: sub.author?.participantType || "PRACTICE",
+          ghost: sub.author?.ghost || false,
+        },
+        programmingLanguage: sub.programmingLanguage || "Unknown",
+        passedTestCount: sub.passedTestCount || 0,
+        timeConsumedMillis: sub.timeConsumedMillis || 0,
+        memoryConsumedBytes: sub.memoryConsumedBytes || 0,
       } as CodeforcesSubmission)
   );
 };
 
+// For functions that compose other fallible API calls, a try-catch is still useful
 export const getAcceptedSubmissions = async (
   handle: string
 ): Promise<CodeforcesSubmission[]> => {
-  const submissions = await getUserSubmissions(handle);
-  return submissions.filter((submission) => submission.verdict === "OK");
-};
-
-export interface CodeforcesRatingChange {
-  contestId: number;
-  contestName: string;
-  handle: string;
-  rank: number;
-  ratingUpdateTimeSeconds: number;
-  oldRating: number;
-  newRating: number;
-}
-
-export const getUserRatingHistory = async (
-  handle: string
-): Promise<CodeforcesRatingChange[]> => {
-  const lang = getApiLanguage(); // Assuming you have this helper
   try {
-    const response = await fetch(
-      `${API_BASE_URL}/user.rating?handle=${handle}&lang=${lang}`
-    );
-    return await handleResponse(response); // Assumes handleResponse is defined
+    const submissions = await getUserSubmissions(handle);
+    return submissions.filter((submission) => submission.verdict === "OK");
   } catch (error) {
-    console.error(`Failed to fetch rating history for ${handle}:`, error);
     throw error;
   }
 };
 
+export const getUserRatingHistory = async (
+  handle: string
+): Promise<CodeforcesRatingChange[]> => {
+  const lang = getApiLanguage();
+  const response = await fetch(
+    `${API_BASE_URL}/user.rating?handle=${handle}&lang=${lang}`
+  );
+  return await handleResponse(response); // handleResponse throws
+};
+
+// These functions below do not make API calls themselves, so no try-catch needed here.
 export const getUniqueSolvedProblems = (
   submissions: CodeforcesSubmission[]
 ): CodeforcesProblem[] => {
@@ -111,15 +138,15 @@ export const getUniqueSolvedProblems = (
   submissions.forEach((submission) => {
     if (
       submission.verdict === "OK" &&
-      submission.problem.contestId &&
-      submission.problem.index
+      submission.problem?.contestId &&
+      submission.problem?.index
     ) {
       const problemKey = `${submission.problem.contestId}-${submission.problem.index}`;
       if (!uniqueProblems.has(problemKey)) {
         uniqueProblems.set(problemKey, {
           contestId: submission.problem.contestId,
           index: submission.problem.index,
-          name: submission.problem.name,
+          name: submission.problem.name || "Unknown Problem",
           type: submission.problem.type,
           points: submission.problem.points,
           rating: submission.problem.rating,
@@ -133,11 +160,72 @@ export const getUniqueSolvedProblems = (
   return Array.from(uniqueProblems.values());
 };
 
+// validateHandle still benefits from try-catch to convert error to boolean
 export const validateHandle = async (handle: string): Promise<boolean> => {
   try {
-    await getUserInfo(handle);
+    await getUserInfo(handle); // getUserInfo can throw (user not found, API error)
     return true;
   } catch (error) {
-    return false;
+    return false; // Any error means validation failed
+  }
+};
+
+// --- FUNCTION FOR DPP (getAllProblems) ---
+let ALL_PROBLEMS_CACHE: CodeforcesProblem[] | null = null;
+let ALL_PROBLEMS_CACHE_TIMESTAMP: number | null = null;
+const CACHE_DURATION_MS = 1000 * 60 * 60 * 6; // Cache problemset for 6 hours
+
+export const getAllProblems = async (
+  forceRefresh: boolean = false
+): Promise<CodeforcesProblem[]> => {
+  const now = Date.now();
+  if (
+    !forceRefresh &&
+    ALL_PROBLEMS_CACHE &&
+    ALL_PROBLEMS_CACHE_TIMESTAMP &&
+    now - ALL_PROBLEMS_CACHE_TIMESTAMP < CACHE_DURATION_MS
+  ) {
+    return ALL_PROBLEMS_CACHE;
+  }
+
+  const lang = getApiLanguage();
+  // This top-level try-catch for getAllProblems is good because of the caching logic
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/problemset.problems?lang=${lang}`
+    );
+    const result = await handleResponse(response);
+
+    if (!result.problems || !Array.isArray(result.problems)) {
+      throw new Error("Invalid problemset data structure received from API.");
+    }
+
+    const problemsWithRating = result.problems.filter(
+      (p: any) => typeof p.rating === "number"
+    );
+
+    ALL_PROBLEMS_CACHE = problemsWithRating.map((p: any) => ({
+      contestId: p.contestId,
+      index: p.index,
+      name: p.name || "Untitled Problem",
+      type: p.type,
+      points: p.points,
+      rating: p.rating,
+      tags: Array.isArray(p.tags) ? p.tags : [],
+    }));
+    ALL_PROBLEMS_CACHE_TIMESTAMP = now;
+    return ALL_PROBLEMS_CACHE;
+  } catch (error) {
+    if (ALL_PROBLEMS_CACHE) {
+      // If fetching new data fails, but we have old (even stale) cache
+      console.warn(
+        "Failed to refresh all problems from Codeforces API, returning stale cache:",
+        error instanceof Error ? error.message : String(error)
+      );
+      return ALL_PROBLEMS_CACHE;
+    }
+    // If no cache and fetch fails, then we must throw
+    // console.error("Failed to fetch all problems and no cache available:", error instanceof Error ? error.message : String(error));
+    throw error;
   }
 };
