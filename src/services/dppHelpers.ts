@@ -136,7 +136,7 @@ export const DPP_LEVELS_CONFIG: DPPLevel[] = [
   },
   {
     level: 8,
-    name: "Level 8 Grandmaster (RT: 75-90mins)",
+    name: "Level 8 Grandmaster (RT: 75-90 mins)",
     ratingRange: { min: 2400, max: 2500 },
     problemDistribution: [
       { rating: 2400, count: 4 },
