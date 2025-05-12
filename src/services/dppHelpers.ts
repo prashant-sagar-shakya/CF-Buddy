@@ -34,7 +34,7 @@ export const DPP_LEVELS_CONFIG: DPPLevel[] = [
   // ... (Keep all your DPP_LEVELS_CONFIG levels as they were)
   {
     level: 1,
-    name: "Level 1 Newbie",
+    name: "Level 1 Newbie (RT: 5-10 mins)",
     ratingRange: { min: 800, max: 1100 },
     problemDistribution: [
       { rating: 800, count: 3 },
@@ -46,11 +46,26 @@ export const DPP_LEVELS_CONFIG: DPPLevel[] = [
   },
   {
     level: 2,
-    name: "Level 2 Pupil",
+    name: "Level 2 Pupil (RT: 10-15 mins)",
     ratingRange: { min: 1200, max: 1300 },
     problemDistribution: [
       { rating: 1200, count: 4 },
       { rating: 1300, count: 3 },
+    ],
+    totalQuestions: 7,
+    warmUp: [
+      { rating: 800, count: 1 },
+      { rating: 900, count: 1 },
+      { rating: 900, count: 1 },
+    ],
+  },
+  {
+    level: 3,
+    name: "Level 3 Specialist (RT: 15-20 mins)",
+    ratingRange: { min: 1400, max: 1500 },
+    problemDistribution: [
+      { rating: 1400, count: 4 },
+      { rating: 1500, count: 3 },
     ],
     totalQuestions: 7,
     warmUp: [
@@ -60,12 +75,12 @@ export const DPP_LEVELS_CONFIG: DPPLevel[] = [
     ],
   },
   {
-    level: 3,
-    name: "Level 3 Specialist",
-    ratingRange: { min: 1400, max: 1500 },
+    level: 4,
+    name: "Level 4 Expert (RT: 20-30 mins)",
+    ratingRange: { min: 1600, max: 1700 },
     problemDistribution: [
-      { rating: 1400, count: 4 },
-      { rating: 1500, count: 3 },
+      { rating: 1600, count: 4 },
+      { rating: 1700, count: 3 },
     ],
     totalQuestions: 7,
     warmUp: [
@@ -75,23 +90,8 @@ export const DPP_LEVELS_CONFIG: DPPLevel[] = [
     ],
   },
   {
-    level: 4,
-    name: "Level 4 Expert",
-    ratingRange: { min: 1600, max: 1700 },
-    problemDistribution: [
-      { rating: 1600, count: 4 },
-      { rating: 1700, count: 3 },
-    ],
-    totalQuestions: 7,
-    warmUp: [
-      { rating: 1300, count: 1 },
-      { rating: 1400, count: 1 },
-      { rating: 1500, count: 1 },
-    ],
-  },
-  {
     level: 5,
-    name: "Level 5 Candidate Master",
+    name: "Level 5 Candidate Master (RT: 30-45 mins)",
     ratingRange: { min: 1800, max: 1900 },
     problemDistribution: [
       { rating: 1800, count: 4 },
@@ -99,18 +99,48 @@ export const DPP_LEVELS_CONFIG: DPPLevel[] = [
     ],
     totalQuestions: 7,
     warmUp: [
-      { rating: 1500, count: 1 },
-      { rating: 1600, count: 1 },
-      { rating: 1700, count: 1 },
+      { rating: 1200, count: 1 },
+      { rating: 1300, count: 1 },
+      { rating: 1400, count: 1 },
     ],
   },
   {
     level: 6,
-    name: "Level 6 Master",
+    name: "Level 6 Master (RT: 45-60 mins)",
     ratingRange: { min: 2000, max: 2100 },
     problemDistribution: [
       { rating: 2000, count: 4 },
       { rating: 2100, count: 3 },
+    ],
+    totalQuestions: 7,
+    warmUp: [
+      { rating: 1400, count: 1 },
+      { rating: 1500, count: 1 },
+      { rating: 1600, count: 1 },
+    ],
+  },
+  {
+    level: 7,
+    name: "Level 7 International Master (RT: 60-75 mins)",
+    ratingRange: { min: 2200, max: 2300 },
+    problemDistribution: [
+      { rating: 2200, count: 4 },
+      { rating: 2300, count: 3 },
+    ],
+    totalQuestions: 7,
+    warmUp: [
+      { rating: 1600, count: 1 },
+      { rating: 1700, count: 1 },
+      { rating: 1800, count: 1 },
+    ],
+  },
+  {
+    level: 8,
+    name: "Level 8 Grandmaster (RT: 75-90mins)",
+    ratingRange: { min: 2400, max: 2500 },
+    problemDistribution: [
+      { rating: 2400, count: 4 },
+      { rating: 2500, count: 3 },
     ],
     totalQuestions: 7,
     warmUp: [
@@ -120,12 +150,13 @@ export const DPP_LEVELS_CONFIG: DPPLevel[] = [
     ],
   },
   {
-    level: 7,
-    name: "Level 7 International Master",
-    ratingRange: { min: 2200, max: 2300 },
+    level: 9,
+    name: "Level 9 International Grandmaster (RT: 90-120 mins)",
+    ratingRange: { min: 2600, max: 2800 },
     problemDistribution: [
-      { rating: 2200, count: 4 },
-      { rating: 2300, count: 3 },
+      { rating: 2600, count: 3 },
+      { rating: 2700, count: 2 },
+      { rating: 2800, count: 2 },
     ],
     totalQuestions: 7,
     warmUp: [
@@ -135,39 +166,8 @@ export const DPP_LEVELS_CONFIG: DPPLevel[] = [
     ],
   },
   {
-    level: 8,
-    name: "Level 8 Grandmaster",
-    ratingRange: { min: 2400, max: 2500 },
-    problemDistribution: [
-      { rating: 2400, count: 4 },
-      { rating: 2500, count: 3 },
-    ],
-    totalQuestions: 7,
-    warmUp: [
-      { rating: 2100, count: 1 },
-      { rating: 2200, count: 1 },
-      { rating: 2300, count: 1 },
-    ],
-  },
-  {
-    level: 9,
-    name: "Level 9 International Grandmaster",
-    ratingRange: { min: 2600, max: 2800 },
-    problemDistribution: [
-      { rating: 2600, count: 3 },
-      { rating: 2700, count: 2 },
-      { rating: 2800, count: 2 },
-    ],
-    totalQuestions: 7,
-    warmUp: [
-      { rating: 2300, count: 1 },
-      { rating: 2400, count: 1 },
-      { rating: 2500, count: 1 },
-    ],
-  },
-  {
     level: 10,
-    name: "Level 10 Legendary Grandmaster",
+    name: "Level 10 Legendary Grandmaster (RT: 120+ mins)",
     ratingRange: { min: 2900, max: 3500 },
     problemDistribution: [
       { rating: 2900, count: 1 },
@@ -180,9 +180,9 @@ export const DPP_LEVELS_CONFIG: DPPLevel[] = [
     ],
     totalQuestions: 7,
     warmUp: [
-      { rating: 2600, count: 1 },
-      { rating: 2700, count: 1 },
-      { rating: 2800, count: 1 },
+      { rating: 2200, count: 1 },
+      { rating: 2300, count: 1 },
+      { rating: 2400, count: 1 },
     ],
   },
 ];

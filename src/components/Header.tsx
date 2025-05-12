@@ -846,7 +846,7 @@ const Header = () => {
                   Daily Practice Problems (DPP)
                 </DialogTitle>
                 <DialogDescription className="dark:text-gray-400 text-xs sm:text-sm">
-                  ⚠️ Select level according to your current ranking
+                  ⚠️ Select level according to your current ranking, "RT" is the required time to solve a question.
                   <br />
                   ⚠️ Log in to Codeforces in your browser to view solutions.
                 </DialogDescription>
