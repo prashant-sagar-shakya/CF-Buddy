@@ -173,12 +173,20 @@ export const validateHandle = async (handle: string): Promise<boolean> => {
 // --- FUNCTION FOR DPP (getAllProblems) ---
 let ALL_PROBLEMS_CACHE: CodeforcesProblem[] | null = null;
 let ALL_PROBLEMS_CACHE_TIMESTAMP: number | null = null;
-const CACHE_DURATION_MS = 1000 * 60 * 60 * 6; // Cache problemset for 6 hours
+const CACHE_DURATION_MS = 1000 * 60 * 60 * 24; // Cache problemset for 24 hours
+const PROBLEMS_CACHE_KEY = "cf_problems_cache";
+
+interface ProblemsCache {
+  timestamp: number;
+  problems: CodeforcesProblem[];
+}
 
 export const getAllProblems = async (
   forceRefresh: boolean = false
 ): Promise<CodeforcesProblem[]> => {
   const now = Date.now();
+
+  // Try to load from memory cache first
   if (
     !forceRefresh &&
     ALL_PROBLEMS_CACHE &&
@@ -188,8 +196,24 @@ export const getAllProblems = async (
     return ALL_PROBLEMS_CACHE;
   }
 
+  // Try to load from localStorage
+  if (!forceRefresh) {
+    try {
+      const cached = localStorage.getItem(PROBLEMS_CACHE_KEY);
+      if (cached) {
+        const parsedCache: ProblemsCache = JSON.parse(cached);
+        if (now - parsedCache.timestamp < CACHE_DURATION_MS) {
+          ALL_PROBLEMS_CACHE = parsedCache.problems;
+          ALL_PROBLEMS_CACHE_TIMESTAMP = parsedCache.timestamp;
+          return parsedCache.problems;
+        }
+      }
+    } catch (e) {
+      console.warn("Failed to load problems from localStorage", e);
+    }
+  }
+
   const lang = getApiLanguage();
-  // This top-level try-catch for getAllProblems is good because of the caching logic
   try {
     const response = await fetch(
       `${API_BASE_URL}/problemset.problems?lang=${lang}`
@@ -214,18 +238,32 @@ export const getAllProblems = async (
       tags: Array.isArray(p.tags) ? p.tags : [],
     }));
     ALL_PROBLEMS_CACHE_TIMESTAMP = now;
+
+    // Save to localStorage
+    try {
+      localStorage.setItem(
+        PROBLEMS_CACHE_KEY,
+        JSON.stringify({
+          timestamp: now,
+          problems: ALL_PROBLEMS_CACHE,
+        })
+      );
+    } catch (e) {
+      console.warn(
+        "Failed to save problems to localStorage (quota exceeded?)",
+        e
+      );
+    }
+
     return ALL_PROBLEMS_CACHE;
   } catch (error) {
     if (ALL_PROBLEMS_CACHE) {
-      // If fetching new data fails, but we have old (even stale) cache
       console.warn(
         "Failed to refresh all problems from Codeforces API, returning stale cache:",
         error instanceof Error ? error.message : String(error)
       );
       return ALL_PROBLEMS_CACHE;
     }
-    // If no cache and fetch fails, then we must throw
-    // console.error("Failed to fetch all problems and no cache available:", error instanceof Error ? error.message : String(error));
     throw error;
   }
 };

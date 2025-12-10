@@ -6,22 +6,24 @@ const Footer: React.FC = () => {
   const portfolioLink = "https://my-first-portfolio-mu.vercel.app/";
 
   return (
-    <footer className="bg-card/80 dark:bg-dark-blue/20 backdrop-blur-sm border-t border-border dark:border-dark-blue/30 text-muted-foreground py-2 mt-auto w-full">
-      <div className="container mx-auto px-4 text-center text-sm">
+    <footer className="glass border-t border-white/10 text-muted-foreground py-4 mt-auto w-full z-10">
+      <div className="container mx-auto px-4 text-center text-sm font-mono">
         <div className="flex justify-center items-center space-x-2 sm:space-y-0 sm:space-x-2 mb-2">
           <span>Made with</span>
-          <Heart className="inline-block h-4 w-4 text-red-500 fill-red-500 dark:text-red-400 dark:fill-red-400" />
+          <Heart className="inline-block h-4 w-4 text-accent fill-accent animate-pulse" />
           <span>by</span>
           <a
             href={portfolioLink}
             target="_blank"
             rel="noopener noreferrer"
-            className="font-semibold text-primary dark:text-dark-purple hover:underline transition-colors duration-200"
+            className="font-bold text-primary hover:text-white hover:shadow-[0_0_10px_rgba(168,85,247,0.5)] transition-all duration-300"
           >
             Prashant Sagar Shakya
           </a>
         </div>
-        <p>© {currentYear} Prashant Sagar Shakya. All Rights Reserved.</p>
+        <p className="text-xs opacity-70">
+          © {currentYear} Prashant Sagar Shakya. All Rights Reserved.
+        </p>
       </div>
     </footer>
   );

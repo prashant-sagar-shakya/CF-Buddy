@@ -130,9 +130,7 @@ const SubmissionsList: React.FC<SubmissionsListProps> = ({
         const acceptedUserSubmissions = userSubmissions.filter(
           (sub) => sub.verdict === "OK"
         );
-        const uniqueProblems = getUniqueSolvedProblems(
-          acceptedUserSubmissions
-        );
+        const uniqueProblems = getUniqueSolvedProblems(acceptedUserSubmissions);
         const tagsFromUser = new Set<string>();
         uniqueProblems.forEach((problem) =>
           problem.tags?.forEach((tag) => tagsFromUser.add(tag))
@@ -374,26 +372,30 @@ const SubmissionsList: React.FC<SubmissionsListProps> = ({
 
         return true;
       })
-      .sort(
-        (a, b) => {
-          const pA = a.problemDetails;
-          const pB = b.problemDetails;
+      .sort((a, b) => {
+        const pA = a.problemDetails;
+        const pB = b.problemDetails;
 
-          if (pA.rating! !== pB.rating!) {
-            return pA.rating! - pB.rating!;
-          }
-          
-          const contestIdA = typeof pA.contestId === 'number' ? pA.contestId : Number.MAX_SAFE_INTEGER;
-          const contestIdB = typeof pB.contestId === 'number' ? pB.contestId : Number.MAX_SAFE_INTEGER;
-          if (contestIdA !== contestIdB) {
-            return contestIdA - contestIdB;
-          }
-
-          const indexA = pA.index ?? "";
-          const indexB = pB.index ?? "";
-          return indexA.localeCompare(indexB);
+        if (pA.rating! !== pB.rating!) {
+          return pA.rating! - pB.rating!;
         }
-      );
+
+        const contestIdA =
+          typeof pA.contestId === "number"
+            ? pA.contestId
+            : Number.MAX_SAFE_INTEGER;
+        const contestIdB =
+          typeof pB.contestId === "number"
+            ? pB.contestId
+            : Number.MAX_SAFE_INTEGER;
+        if (contestIdA !== contestIdB) {
+          return contestIdA - contestIdB;
+        }
+
+        const indexA = pA.index ?? "";
+        const indexB = pB.index ?? "";
+        return indexA.localeCompare(indexB);
+      });
   }, [
     consolidatedProblems,
     filters,
@@ -459,7 +461,7 @@ const SubmissionsList: React.FC<SubmissionsListProps> = ({
               }
               variant={solvedStatusFilter === "solved" ? "default" : "outline"}
               size="sm"
-              className="bg-green-500/10 text-green-700 border-green-500/30 hover:bg-green-500/20 dark:bg-dark-green/20 dark:text-dark-green dark:border-dark-green/30 dark:hover:bg-dark-green/30 data-[state=active]:bg-green-600 data-[state=active]:text-white dark:data-[state=active]:bg-dark-green dark:data-[state=active]:text-white"
+              className="bg-green-500/10 text-green-700 border-green-500/30 hover:bg-green-500/20 data-[state=active]:bg-green-600 data-[state=active]:text-white"
               onClick={() => {
                 setSolvedStatusFilter("solved");
                 setCurrentPage(1);
@@ -476,7 +478,7 @@ const SubmissionsList: React.FC<SubmissionsListProps> = ({
                 solvedStatusFilter === "unsolved" ? "default" : "outline"
               }
               size="sm"
-              className="bg-red-500/10 text-red-700 border-red-500/30 hover:bg-red-500/20 dark:bg-dark-red/20 dark:text-dark-red dark:border-dark-red/30 dark:hover:bg-dark-red/30 data-[state=active]:bg-red-600 data-[state=active]:text-white dark:data-[state=active]:bg-dark-red dark:data-[state=active]:text-white"
+              className="bg-red-500/10 text-red-700 border-red-500/30 hover:bg-red-500/20 data-[state=active]:bg-red-600 data-[state=active]:text-white"
               onClick={() => {
                 setSolvedStatusFilter("unsolved");
                 setCurrentPage(1);
@@ -521,7 +523,9 @@ const SubmissionsList: React.FC<SubmissionsListProps> = ({
 
               return otherHandles.map((handle) => (
                 <span key={handle} className="ml-3" title={handle}>
-                  {handle.length > 15 ? `${handle.substring(0, 12)}...` : handle}
+                  {handle.length > 15
+                    ? `${handle.substring(0, 12)}...`
+                    : handle}
                   -&gt;
                   {isLoading &&
                   (initialProblemCounts[handle] === undefined ||
@@ -541,7 +545,9 @@ const SubmissionsList: React.FC<SubmissionsListProps> = ({
             onClick={handleRefresh}
             disabled={isLoading}
           >
-            <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+            <RefreshCw
+              className={`h-4 w-4 mr-2 ${isLoading ? "animate-spin" : ""}`}
+            />
             Sync
           </Button>
         </div>
@@ -598,10 +604,10 @@ const SubmissionsList: React.FC<SubmissionsListProps> = ({
                     "border-b-gray-200/30 dark:border-dark-blue/30 transition-colors hover:bg-muted/50 dark:hover:bg-dark-blue/10";
                   if (isSolvedByMainUser) {
                     rowClassName +=
-                      " bg-green-300 dark:bg-dark-green/45 hover:bg-green-400 hover:dark:bg-dark-green/40";
+                      " bg-green-300 dark:bg-green-500 hover:bg-green-600 hover:dark:bg-green-600";
                   } else if (hasIncorrectByMainUser) {
                     rowClassName +=
-                      " bg-red-300 dark:bg-dark-red/45 hover:bg-red-400 hover:dark:bg-dark-red/40";
+                      " bg-red-300 dark:bg-red-500 hover:bg-red-600 hover:dark:bg-red-600";
                   }
 
                   const problemTags = problemDetails.tags || [];
@@ -665,9 +671,7 @@ const SubmissionsList: React.FC<SubmissionsListProps> = ({
                               (
                               {areTagsExpanded
                                 ? "less"
-                                : `+${
-                                    problemTags.length - INITIAL_TAG_LIMIT
-                                  }`}
+                                : `+${problemTags.length - INITIAL_TAG_LIMIT}`}
                               )
                             </button>
                           )}

@@ -34,8 +34,6 @@ import {
   CodeIcon,
   LogOut,
   UserIcon,
-  Moon,
-  Sun,
   BarChart3Icon,
   Wrench,
   BrainCircuit,
@@ -59,6 +57,7 @@ import {
   ELITE_USERS_DPP as ELITE_USERS_FROM_HELPER,
 } from "@/services/dppHelpers";
 import { CodeforcesProblem, CodeforcesSubmission } from "@/types/codeforces";
+import NeonButton from "@/components/ui/NeonButton";
 
 const LOCAL_STORAGE_DPP_KEY_PREFIX = "cfBuddyDailyDpp_";
 const INITIAL_DPP_TAG_LIMIT = 1;
@@ -626,17 +625,17 @@ const Header = () => {
           <div className="border rounded-md dark:border-dark-blue/50 overflow-x-auto">
             <Table className="min-w-full text-sm table-fixed">
               <TableHeader>
-                <TableRow className="dark:border-dark-blue/30 bg-gray-50 dark:bg-dark-card/30">
-                  <TableHead className="w-[35%] sm:w-[30%] pl-3 pr-1 py-2.5 text-gray-700 dark:text-gray-300">
+                <TableRow className="dark:border-dark-blue/30 bg-muted/50 dark:bg-dark-card/30">
+                  <TableHead className="w-[35%] sm:w-[30%] pl-3 pr-1 py-2.5 text-foreground dark:text-gray-300">
                     Problem Name
                   </TableHead>
-                  <TableHead className="w-[15%] sm:w-[10%] px-1 py-2.5 text-center text-gray-700 dark:text-gray-300">
+                  <TableHead className="w-[15%] sm:w-[10%] px-1 py-2.5 text-center text-foreground dark:text-gray-300">
                     Rating
                   </TableHead>
-                  <TableHead className="w-[25%] sm:w-[35%] px-1 py-2.5 text-center text-gray-700 dark:text-gray-300">
+                  <TableHead className="w-[25%] sm:w-[35%] px-1 py-2.5 text-center text-foreground dark:text-gray-300">
                     Tags
                   </TableHead>
-                  <TableHead className="w-[25%] sm:w-[25%] pl-1 pr-3 py-2.5 text-center text-gray-700 dark:text-gray-300">
+                  <TableHead className="w-[25%] sm:w-[25%] pl-1 pr-3 py-2.5 text-center text-foreground dark:text-gray-300">
                     Solutions
                   </TableHead>
                 </TableRow>
@@ -653,14 +652,14 @@ const Header = () => {
                   return (
                     <TableRow
                       key={problemKey}
-                      className="dark:border-dark-blue/30 hover:bg-gray-50 dark:hover:bg-dark-card/50 transition-colors duration-150"
+                      className="dark:border-dark-blue/30 hover:bg-muted/50 dark:hover:bg-dark-card/50 transition-colors duration-150"
                     >
                       <TableCell className="pl-3 pr-1 py-2.5 align-middle">
                         <a
                           href={problemUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="group text-gray-800 dark:text-gray-200 hover:text-teal-600 dark:hover:text-teal-400 font-medium"
+                          className="group text-foreground dark:text-gray-200 hover:text-primary dark:hover:text-teal-400 font-medium"
                         >
                           <span
                             className="block truncate"
@@ -686,7 +685,7 @@ const Header = () => {
                             <Badge
                               key={tag}
                               variant="secondary"
-                              className="text-xs truncate px-1.5 py-0.5 bg-gray-200 dark:bg-dark-blue/40 text-gray-700 dark:text-gray-300 cursor-default"
+                              className="text-xs truncate px-1.5 py-0.5 bg-secondary/10 dark:bg-dark-blue/40 text-foreground dark:text-gray-300 cursor-default"
                               title={tag}
                             >
                               {tag}
@@ -782,25 +781,25 @@ const Header = () => {
   );
 
   return (
-    <header className="sticky top-0 z-50 bg-white/90 dark:bg-code-bg/80 backdrop-blur-sm border-b border-gray-200 dark:border-dark-border py-3 px-4 sm:px-6 shadow-sm">
+    <header className="sticky top-0 z-50 glass border-b border-border/40 py-3 px-4 sm:px-6 shadow-sm">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-x-2">
         <div
           onClick={handleLogoClick}
-          className="flex items-center space-x-2 cursor-pointer flex-shrink-0"
+          className="flex items-center space-x-2 cursor-pointer flex-shrink-0 group"
           role="button"
           tabIndex={0}
           onKeyDown={handleLogoKeyDown}
           aria-label="Go to homepage"
         >
-          <CodeIcon className="h-7 w-7 sm:h-8 sm:w-8 text-primary dark:text-dark-purple" />
-          <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-primary dark:text-dark-purple">
-            CF<span className="text-blue-400 dark:text-dark-blue">-</span>
-            <span className="text-green-600 dark:text-dark-pink">Buddy</span>
+          <CodeIcon className="h-8 w-8 text-primary animate-pulse group-hover:text-accent transition-colors duration-300" />
+          <h1 className="text-2xl font-display font-bold text-foreground tracking-widest group-hover:text-glow transition-all duration-300">
+            CF<span className="text-primary">-</span>
+            <span className="text-secondary">BUDDY</span>
           </h1>
         </div>
 
         <div className="flex items-center space-x-1 sm:space-x-2 flex-shrink-0">
-          <Button
+          {/* <Button
             variant="ghost"
             size="icon"
             onClick={toggleTheme}
@@ -816,11 +815,11 @@ const Header = () => {
             ) : (
               <Moon className="h-5 w-5" />
             )}
-          </Button>
+          </Button> */}
           <Button
             variant="ghost"
             onClick={handleAnalyticsClick}
-            className="inline-flex items-center text-gray-700 dark:text-dark-text hover:bg-gray-100 dark:hover:bg-dark-blue/10 rounded-md p-1.5 lg:px-3 lg:py-1.5"
+            className="inline-flex items-center text-gray-700 dark:text-dark-text  dark:hover:bg-dark-blue/10 rounded-md p-1.5 lg:px-3 lg:py-1.5"
             title="View Analytics"
           >
             <BarChart3Icon className="h-5 w-5 lg:mr-2" />{" "}
@@ -846,7 +845,8 @@ const Header = () => {
                   Daily Practice Problems (DPP)
                 </DialogTitle>
                 <DialogDescription className="dark:text-gray-400 text-xs sm:text-sm">
-                  ⚠️ Select level according to your current ranking, "RT" is the required time to solve a question.
+                  ⚠️ Select level according to your current ranking, "RT" is the
+                  required time to solve a question.
                   <br />
                   ⚠️ Log in to Codeforces in your browser to view solutions.
                 </DialogDescription>
@@ -993,11 +993,12 @@ const Header = () => {
 
           {userState.currentUser ? (
             <div className="flex items-center space-x-1 sm:space-x-2 bg-green-100 dark:bg-dark-green/30 px-2 sm:px-3 py-1.5 rounded-full">
-              <UserIcon
-                className="block sm:hidden h-5 w-5 text-green-700 dark:text-dark-green"
-                title={userState.currentUser}
-                aria-label={`User: ${userState.currentUser}`}
-              />
+              <div className="block sm:hidden" title={userState.currentUser}>
+                <UserIcon
+                  className="h-5 w-5 text-green-700 dark:text-dark-green"
+                  aria-label={`User: ${userState.currentUser}`}
+                />
+              </div>
               <span
                 className="hidden sm:inline font-semibold text-sm text-green-700 dark:text-dark-green truncate max-w-[70px] xs:max-w-[80px] sm:max-w-[100px] md:max-w-[120px]"
                 title={userState.currentUser}
