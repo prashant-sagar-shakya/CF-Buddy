@@ -1,13 +1,18 @@
-
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
 import { UserState } from "@/types/codeforces";
 import { validateHandle } from "@/services/codeforcesApi";
 import { toast } from "@/components/ui/use-toast";
 
 interface UserContextProps {
   userState: UserState;
-  signIn: (handle: string) => Promise<boolean>;
-  signOut: () => void;
+  linkHandle: (handle: string) => Promise<boolean>;
+  unlinkHandle: () => void;
   addTrackedUser: (handle: string) => Promise<boolean>;
   removeTrackedUser: (handle: string) => void;
 }
@@ -30,8 +35,8 @@ export const UserProvider = ({ children }: UserProviderProps) => {
   const [userState, setUserState] = useState<UserState>(() => {
     // Load user state from localStorage on initial render
     const savedState = localStorage.getItem("codeforces-user-state");
-    return savedState 
-      ? JSON.parse(savedState) 
+    return savedState
+      ? JSON.parse(savedState)
       : { currentUser: null, trackedUsers: [] };
   });
 
@@ -40,21 +45,21 @@ export const UserProvider = ({ children }: UserProviderProps) => {
     localStorage.setItem("codeforces-user-state", JSON.stringify(userState));
   }, [userState]);
 
-  // Sign in with a Codeforces handle
-  const signIn = async (handle: string): Promise<boolean> => {
+  // Link a Codeforces handle
+  const linkHandle = async (handle: string): Promise<boolean> => {
     try {
       const isValid = await validateHandle(handle);
       if (isValid) {
-        setUserState(prev => ({ 
-          ...prev, 
+        setUserState((prev) => ({
+          ...prev,
           currentUser: handle,
-          trackedUsers: prev.trackedUsers.includes(handle) 
-            ? prev.trackedUsers 
-            : [...prev.trackedUsers, handle]
+          trackedUsers: prev.trackedUsers.includes(handle)
+            ? prev.trackedUsers
+            : [...prev.trackedUsers, handle],
         }));
         toast({
-          title: "Signed in successfully",
-          description: `Welcome, ${handle}!`,
+          title: "Handle Linked",
+          description: `Linked Codeforces handle: ${handle}`,
         });
         return true;
       } else {
@@ -67,7 +72,7 @@ export const UserProvider = ({ children }: UserProviderProps) => {
       }
     } catch (error) {
       toast({
-        title: "Error signing in",
+        title: "Error linking handle",
         description: "Failed to verify Codeforces handle",
         variant: "destructive",
       });
@@ -75,12 +80,12 @@ export const UserProvider = ({ children }: UserProviderProps) => {
     }
   };
 
-  // Sign out the current user
-  const signOut = () => {
-    setUserState(prev => ({ ...prev, currentUser: null }));
+  // Unlink the current user
+  const unlinkHandle = () => {
+    setUserState((prev) => ({ ...prev, currentUser: null }));
     toast({
-      title: "Signed out",
-      description: "You've been signed out successfully",
+      title: "Handle Unlinked",
+      description: "Codeforces handle unlinked successfully",
     });
   };
 
@@ -97,9 +102,9 @@ export const UserProvider = ({ children }: UserProviderProps) => {
     try {
       const isValid = await validateHandle(handle);
       if (isValid) {
-        setUserState(prev => ({
+        setUserState((prev) => ({
           ...prev,
-          trackedUsers: [...prev.trackedUsers, handle]
+          trackedUsers: [...prev.trackedUsers, handle],
         }));
         toast({
           title: "User added",
@@ -126,10 +131,10 @@ export const UserProvider = ({ children }: UserProviderProps) => {
 
   // Remove a user from tracking
   const removeTrackedUser = (handle: string) => {
-    setUserState(prev => ({
+    setUserState((prev) => ({
       ...prev,
-      trackedUsers: prev.trackedUsers.filter(u => u !== handle),
-      currentUser: prev.currentUser === handle ? null : prev.currentUser
+      trackedUsers: prev.trackedUsers.filter((u) => u !== handle),
+      currentUser: prev.currentUser === handle ? null : prev.currentUser,
     }));
     toast({
       title: "User removed",
@@ -138,13 +143,15 @@ export const UserProvider = ({ children }: UserProviderProps) => {
   };
 
   return (
-    <UserContext.Provider value={{ 
-      userState, 
-      signIn, 
-      signOut,
-      addTrackedUser,
-      removeTrackedUser
-    }}>
+    <UserContext.Provider
+      value={{
+        userState,
+        linkHandle,
+        unlinkHandle,
+        addTrackedUser,
+        removeTrackedUser,
+      }}
+    >
       {children}
     </UserContext.Provider>
   );

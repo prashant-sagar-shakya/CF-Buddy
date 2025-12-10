@@ -114,3 +114,8 @@ export interface CodeforcesRatingChange {
   oldRating: number;
   newRating: number;
 }
+
+export interface UserState {
+  currentUser: string | null;
+  trackedUsers: string[];
+}

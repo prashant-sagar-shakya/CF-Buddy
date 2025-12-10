@@ -1,26 +1,21 @@
-import React, { useState } from "react";
+import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import NeonButton from "@/components/ui/NeonButton";
-import TerminalInput from "@/components/ui/TerminalInput";
 import HolographicCard from "@/components/ui/HolographicCard";
-import { CodeIcon, BarChart3Icon, BrainCircuit, Trophy } from "lucide-react";
-import { useUserContext } from "@/context/UserContext";
+import { BarChart3Icon, BrainCircuit, Trophy } from "lucide-react";
+import { useClerk, useUser } from "@clerk/clerk-react";
 
 const Index = () => {
   const navigate = useNavigate();
-  const { signIn } = useUserContext();
-  const [handle, setHandle] = useState("");
+  const { openSignIn } = useClerk();
+  const { isSignedIn } = useUser();
 
-  const handleEnter = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (handle.trim()) {
-      await signIn(handle.trim());
-      navigate("/dashboard");
-    } else {
+  useEffect(() => {
+    if (isSignedIn) {
       navigate("/dashboard");
     }
-  };
+  }, [isSignedIn, navigate]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[80vh] space-y-16">
@@ -40,23 +35,16 @@ const Index = () => {
           </p>
         </motion.div>
 
-        <motion.form
-          onSubmit={handleEnter}
+        <motion.div
           className="w-full max-w-md mx-auto space-y-6"
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.3, duration: 0.5 }}
         >
-          <TerminalInput
-            placeholder="ENTER_HANDLE"
-            value={handle}
-            onChange={(e) => setHandle(e.target.value)}
-            className="text-lg"
-          />
-          <NeonButton type="submit" className="w-full text-lg">
+          <NeonButton onClick={() => openSignIn()} className="w-full text-lg">
             INITIALIZE SYSTEM
           </NeonButton>
-        </motion.form>
+        </motion.div>
       </section>
 
       {/* Features Grid */}

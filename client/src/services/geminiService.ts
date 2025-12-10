@@ -3,7 +3,7 @@ import { CodeforcesUser, CodeforcesSubmission } from "@/types/codeforces";
 
 // Initialize Gemini API
 // Note: In a production app, this key should be in an environment variable
-const API_KEY = "AIzaSyB5zHPo29DGXv-Ox5xN68usLpZHYvgOCJE";
+const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 const ai = new GoogleGenAI({ apiKey: API_KEY });
 
 export const generateAnalyticsReport = async (

@@ -604,10 +604,10 @@ const SubmissionsList: React.FC<SubmissionsListProps> = ({
                     "border-b-gray-200/30 dark:border-dark-blue/30 transition-colors hover:bg-muted/50 dark:hover:bg-dark-blue/10";
                   if (isSolvedByMainUser) {
                     rowClassName +=
-                      " bg-green-300 dark:bg-green-500 hover:bg-green-600 hover:dark:bg-green-600";
+                      " bg-green-500 dark:bg-green-500 hover:bg-green-600 hover:dark:bg-green-600";
                   } else if (hasIncorrectByMainUser) {
                     rowClassName +=
-                      " bg-red-300 dark:bg-red-500 hover:bg-red-600 hover:dark:bg-red-600";
+                      " bg-red-500 dark:bg-red-500 hover:bg-red-600 hover:dark:bg-red-600";
                   }
 
                   const problemTags = problemDetails.tags || [];

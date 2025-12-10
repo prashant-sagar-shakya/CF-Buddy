@@ -9,6 +9,21 @@ export interface EliteSolverInfo {
   problemIndex: string; // Problem's index
 }
 
+export const getRatingClass = (rating: number | undefined): string => {
+  if (rating === undefined || rating === null)
+    return "text-gray-600 dark:text-gray-400";
+  if (rating >= 3000) return "text-red-700 dark:text-red-500";
+  if (rating >= 2600) return "text-red-600 dark:text-red-400";
+  if (rating >= 2400) return "text-orange-600 dark:text-orange-400";
+  if (rating >= 2300) return "text-orange-500 dark:text-orange-300";
+  if (rating >= 2100) return "text-yellow-500 dark:text-yellow-400";
+  if (rating >= 1900) return "text-purple-500 dark:text-purple-400";
+  if (rating >= 1600) return "text-blue-500 dark:text-blue-400";
+  if (rating >= 1400) return "text-cyan-500 dark:text-cyan-400";
+  if (rating >= 1200) return "text-green-500 dark:text-green-400";
+  return "text-gray-500 dark:text-gray-400";
+};
+
 export interface DppProblemEntry extends CodeforcesProblem {
   solvedByElite?: EliteSolverInfo[];
 }
@@ -26,7 +41,6 @@ export const ELITE_USERS_DPP = [
   "tourist",
   "jiangly",
   "orzdevinwang",
-  "demoralizer",
   "Priyansh31dec",
 ];
 
