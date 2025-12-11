@@ -23,6 +23,7 @@ mongoose
 // Routes
 app.use("/api/dpp", require("./routes/dpp"));
 app.use("/api/codeforces", require("./routes/codeforces"));
+app.use("/api/ai", require("./routes/ai"));
 
 const PORT = process.env.PORT || 5000;
 
