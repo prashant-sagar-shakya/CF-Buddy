@@ -35,7 +35,7 @@ const fetchWithTimeout = async (
   resource: string,
   options: RequestInit = {}
 ) => {
-  const { timeout = 15000 } = options as any; // 15s timeout
+  const { timeout = 60000 } = options as any; // 60s timeout
 
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), timeout);
