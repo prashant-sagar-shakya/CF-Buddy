@@ -21,18 +21,15 @@ router.post("/generate-report", async (req, res) => {
         .json({ error: "Server AI configuration missing." });
     }
 
-    const { user, submissions } = req.body;
+    const { user, recentSubmissions, solvedCount } = req.body;
 
-    if (!user || !submissions) {
+    if (!user || !recentSubmissions) {
       return res
         .status(400)
         .json({ error: "Missing user or submissions data." });
     }
 
-    // Prepare data summary for the prompt
-    // Logic copied from client/src/services/geminiService.ts
-    const recentSubmissions = submissions.slice(0, 50); // Analyze last 50 submissions for recent context
-    const solvedCount = submissions.filter((s) => s.verdict === "OK").length;
+    // Data is already pre-processed by client to save bandwidth
     const rating = user.rating;
     const rank = user.rank;
     const maxRating = user.maxRating;

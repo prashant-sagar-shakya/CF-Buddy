@@ -12,9 +12,14 @@ export const generateAnalyticsReport = async (
   submissions: CodeforcesSubmission[]
 ): Promise<string> => {
   try {
+    // Optimization: Calculate stats on client to reduce payload size
+    const recentSubmissions = submissions.slice(0, 50);
+    const solvedCount = submissions.filter((s) => s.verdict === "OK").length;
+
     const response = await axios.post(`${API_BASE_URL}/ai/generate-report`, {
       user,
-      submissions,
+      recentSubmissions,
+      solvedCount,
     });
 
     return response.data.report || "No insights generated.";
