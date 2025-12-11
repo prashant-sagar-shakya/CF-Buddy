@@ -5,7 +5,21 @@ import {
   CodeforcesRatingChange, // Assuming this is defined in your types file
 } from "@/types/codeforces";
 
-const API_BASE_URL = "https://codeforces.com/api";
+// Use backend proxy to avoid CORS and handle authentication
+// Attempts to derive the base URL from the existing VITE_API_URL variable used in dppService
+// Fallback to localhost for dev if not set (or use the Render URL)
+const getBackendBaseUrl = () => {
+  // If in dev mode and no explicit VITE_API_URL, assume local server
+  if (import.meta.env.DEV && !import.meta.env.VITE_API_URL) {
+    return "http://localhost:5000/api/codeforces";
+  }
+  const dppUrl =
+    import.meta.env.VITE_API_URL || "https://cf-buddy.onrender.com/api/dpp";
+  // Replace /api/dpp with /api/codeforces
+  return dppUrl.replace(/\/api\/dpp\/?$/, "/api/codeforces");
+};
+
+const API_BASE_URL = getBackendBaseUrl();
 
 const getApiLanguage = (): "en" | "ru" => {
   if (typeof navigator !== "undefined") {
