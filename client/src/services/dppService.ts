@@ -1,6 +1,7 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:5000/api/dpp";
+const API_URL =
+  import.meta.env.VITE_API_URL || "https://cf-buddy.onrender.com/api/dpp";
 
 export const saveDpp = async (dppData: any) => {
   try {
