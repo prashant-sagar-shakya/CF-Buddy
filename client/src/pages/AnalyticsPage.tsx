@@ -13,7 +13,7 @@ import {
 } from "@/services/analyticsHelpers";
 import { generateAnalyticsReport } from "@/services/geminiService";
 import ReactMarkdown from "react-markdown";
-import { Loader2, Sparkles, BrainCircuit, Bot } from "lucide-react";
+import { Loader2, Sparkles, BrainCircuit, Bot, Lock } from "lucide-react";
 import { Helmet } from "react-helmet-async";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -28,13 +28,52 @@ interface AnalyticsPageProps {
   handleProp?: string;
 }
 
+import { Link } from "react-router-dom";
+import { useUser } from "@clerk/clerk-react";
+
 const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ handleProp }) => {
   const { userState } = useUserContext();
+  const { isSignedIn, isLoaded } = useUser();
   const { toast } = useToast();
   const [analyticsData, setAnalyticsData] =
     useState<OverallAnalyticsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Enforce Authentication
+  if (isLoaded && !isSignedIn) {
+    return (
+      <div className="container mx-auto px-4 py-20 flex flex-col items-center justify-center space-y-8">
+        <HolographicCard className="max-w-md w-full text-center border-red-500/30 bg-red-950/20">
+          <div className="flex flex-col items-center gap-4">
+            <div className="p-4 rounded-full bg-red-500/10 text-red-400 mb-2">
+              <Lock className="h-10 w-10" />
+            </div>
+            <h1 className="text-2xl font-display font-bold text-white">
+              Access Restricted
+            </h1>
+            <p className="text-gray-400">
+              Top-tier analytics are reserved for members only. Please sign in
+              to access your competitive programming insights.
+            </p>
+            <div className="mt-4 w-full">
+              {/* The Header component handles the actual sign-in dialog triggers usually, 
+                            but here we can just guide them or use a redirect if we had a dedicated login page.
+                            Since we use a modal in Header, we'll ask them to use the header button. 
+                        */}
+              <p className="text-sm text-muted-foreground animate-pulse">
+                Please use the{" "}
+                <span className="text-primary font-bold">
+                  "Initialize System"
+                </span>{" "}
+                button in the top right to sign in.
+              </p>
+            </div>
+          </div>
+        </HolographicCard>
+      </div>
+    );
+  }
 
   // AI Report State
   const [aiReport, setAiReport] = useState<string | null>(null);
@@ -43,6 +82,8 @@ const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ handleProp }) => {
   const targetHandle = handleProp || userState.currentUser;
 
   useEffect(() => {
+    if (!isSignedIn) return; // Don't fetch if not signed in (though logic above blocks rendering)
+
     if (!targetHandle) {
       setIsLoading(false);
       setError("No Codeforces handle selected or provided.");

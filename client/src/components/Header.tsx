@@ -44,6 +44,7 @@ import {
   ChevronUp,
   ExternalLink,
   AlertTriangle,
+  Lock,
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
@@ -815,133 +816,155 @@ const Header = () => {
                 </DialogDescription>
               </DialogHeader>
               <div className="flex-grow overflow-y-auto px-6 py-4 space-y-4 sm:space-y-6 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
-                <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
-                  <label
-                    htmlFor="dpp-level-select"
-                    className="text-sm font-medium text-gray-700 dark:text-dark-text flex-shrink-0"
-                  >
-                    Select Level:
-                  </label>
-                  <Select
-                    value={selectedDppLevel.level.toString()}
-                    onValueChange={handleDppLevelChange}
-                    aria-labelledby="dpp-level-select"
-                  >
-                    <SelectTrigger
-                      id="dpp-level-select"
-                      className="w-full sm:flex-grow bg-gray-50 dark:bg-dark-card border-gray-300 dark:border-dark-blue focus:ring-2 focus:ring-teal-500 dark:focus:ring-teal-400"
-                    >
-                      <SelectValue placeholder="Choose a DPP level" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white dark:bg-dark-card dark:border-dark-blue max-h-60">
-                      {DPP_LEVELS_CONFIG.map((lvl) => (
-                        <SelectItem
-                          key={`${lvl.name}-${lvl.level}`} // Use a more unique key if level numbers can be duplicated across names
-                          value={lvl.level.toString()}
-                          className="focus:bg-teal-100 dark:focus:bg-teal-700/50"
-                        >
-                          {lvl.name} (Rating: {lvl.ratingRange.min}-
-                          {lvl.ratingRange.max})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Button
-                    onClick={handleGenerateDpp}
-                    disabled={isGenerateDppButtonDisabled}
-                    className="w-full sm:w-auto bg-teal-500 hover:bg-teal-600 disabled:bg-teal-500/50 disabled:cursor-not-allowed dark:bg-teal-400 dark:hover:bg-teal-500 dark:text-black dark:disabled:bg-teal-400/50 flex items-center justify-center"
-                  >
-                    {isLoadingDpp ||
-                    (isLoadingInitialData &&
-                      !dppProblems &&
-                      !isDppGeneratedForSelectedLevelToday) ? (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    ) : (
-                      <Wrench className="mr-2 h-4 w-4" />
-                    )}
-                    Generate Set
-                  </Button>
-                </div>
-
-                {isLoadedDppStale && (
-                  <div className="my-2 p-3 bg-yellow-100 dark:bg-yellow-900/40 border border-yellow-400 dark:border-yellow-700 rounded-md text-yellow-700 dark:text-yellow-200 text-xs sm:text-sm flex items-center gap-2 justify-center">
-                    <AlertTriangle size={18} /> Stored DPP data is outdated.
-                    Please regenerate the set for the latest problems.
-                  </div>
-                )}
-
-                {isLoadingInitialData &&
-                  !dppProblems &&
-                  !isDppGeneratedForSelectedLevelToday &&
-                  !isLoadedDppStale && (
-                    <div className="flex flex-col justify-center items-center py-10 text-center">
-                      <Loader2 className="h-8 w-8 animate-spin text-teal-500 dark:text-teal-400" />
-                      <p className="ml-3 mt-2 text-md text-gray-600 dark:text-gray-400">
-                        Loading initial problem data...
+                {!user ? (
+                  <div className="flex flex-col items-center justify-center py-10 space-y-6">
+                    <div className="p-4 rounded-full bg-red-500/10 text-red-500 dark:text-red-400 mb-2">
+                      <Lock className="h-12 w-12" />
+                    </div>
+                    <div className="text-center space-y-2 max-w-sm">
+                      <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                        Authentication Required
+                      </h3>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        Daily Practice Problems are exclusive to registered
+                        members. Please sign in to generate and track your
+                        problem sets.
                       </p>
                     </div>
-                  )}
-                {isLoadingDpp && !isLoadingInitialData && (
-                  <div className="flex flex-col justify-center items-center py-10 text-center">
-                    <Loader2 className="h-8 w-8 animate-spin text-teal-500 dark:text-teal-400" />
-                    <p className="ml-3 mt-2 text-md text-gray-600 dark:text-gray-400">
-                      Generating your DPP set...
-                    </p>
+                    <div className="text-center">
+                      <p className="text-xs text-muted-foreground animate-pulse">
+                        Use the{" "}
+                        <span className="text-primary font-bold">
+                          "Initialize System"
+                        </span>{" "}
+                        button in the top right to sign in.
+                      </p>
+                    </div>
                   </div>
-                )}
+                ) : (
+                  <>
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+                      <label
+                        htmlFor="dpp-level-select"
+                        className="text-sm font-medium text-gray-700 dark:text-dark-text flex-shrink-0"
+                      >
+                        Select Level:
+                      </label>
+                      <Select
+                        value={selectedDppLevel.level.toString()}
+                        onValueChange={handleDppLevelChange}
+                        aria-labelledby="dpp-level-select"
+                      >
+                        <SelectTrigger
+                          id="dpp-level-select"
+                          className="w-full sm:flex-grow bg-gray-50 dark:bg-dark-card border-gray-300 dark:border-dark-blue focus:ring-2 focus:ring-teal-500 dark:focus:ring-teal-400"
+                        >
+                          <SelectValue placeholder="Choose a DPP level" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white dark:bg-dark-card dark:border-dark-blue max-h-60">
+                          {DPP_LEVELS_CONFIG.map((lvl) => (
+                            <SelectItem
+                              key={`${lvl.name}-${lvl.level}`} // Use a more unique key if level numbers can be duplicated across names
+                              value={lvl.level.toString()}
+                              className="focus:bg-teal-100 dark:focus:bg-teal-700/50"
+                            >
+                              {lvl.name} (Rating: {lvl.ratingRange.min}-
+                              {lvl.ratingRange.max})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Button
+                        onClick={handleGenerateDpp}
+                        disabled={isGenerateDppButtonDisabled}
+                        className="w-full sm:w-auto bg-teal-500 hover:bg-teal-600 disabled:bg-teal-500/50 disabled:cursor-not-allowed dark:bg-teal-400 dark:hover:bg-teal-500 dark:text-black dark:disabled:bg-teal-400/50 flex items-center justify-center"
+                      >
+                        {isLoadingDpp ||
+                        (isLoadingInitialData &&
+                          !dppProblems &&
+                          !isDppGeneratedForSelectedLevelToday) ? (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                          <Wrench className="mr-2 h-4 w-4" />
+                        )}
+                        Generate Set
+                      </Button>
+                    </div>
 
-                {!isLoadingDpp && !isLoadingInitialData && dppProblems && (
-                  <div className="space-y-6">
-                    <ProblemTable
-                      problems={dppProblems.warmUpProblems}
-                      title="Warm-up Problems"
-                      titleColor="text-orange-600 dark:text-orange-400"
-                      solvedProblemKeys={combinedSolvedKeys}
-                      onToggleProblem={handleToggleProblem}
-                    />
-                    <ProblemTable
-                      problems={dppProblems.mainProblems}
-                      title="Main Problems"
-                      titleColor="text-teal-600 dark:text-teal-400"
-                      solvedProblemKeys={combinedSolvedKeys}
-                      onToggleProblem={handleToggleProblem}
-                    />
-                    {dppProblems.mainProblems.length === 0 &&
-                      dppProblems.warmUpProblems.length === 0 &&
+                    {isLoadedDppStale && (
+                      <div className="my-2 p-3 bg-yellow-100 dark:bg-yellow-900/40 border border-yellow-400 dark:border-yellow-700 rounded-md text-yellow-700 dark:text-yellow-200 text-xs sm:text-sm flex items-center gap-2 justify-center">
+                        <AlertTriangle size={18} /> Stored DPP data is outdated.
+                        Please regenerate the set for the latest problems.
+                      </div>
+                    )}
+
+                    {isLoadingInitialData &&
+                      !dppProblems &&
+                      !isDppGeneratedForSelectedLevelToday &&
                       !isLoadedDppStale && (
-                        <p className="text-center text-sm text-gray-500 dark:text-gray-400 py-4">
-                          No problems found matching the current criteria for{" "}
-                          {selectedDppLevel.name}. Try a different level or
-                          check back later.
-                        </p>
+                        <div className="flex flex-col justify-center items-center py-10 text-center">
+                          <Loader2 className="h-8 w-8 animate-spin text-teal-500 dark:text-teal-400" />
+                          <p className="ml-3 mt-2 text-md text-gray-600 dark:text-gray-400">
+                            Loading initial problem data...
+                          </p>
+                        </div>
                       )}
-                  </div>
-                )}
-                {!isLoadingDpp &&
-                  !isLoadingInitialData &&
-                  !dppProblems &&
-                  userState.currentUser &&
-                  !isLoadedDppStale && (
-                    <div className="text-center py-6 text-sm text-gray-500 dark:text-gray-400">
-                      {allProblemsCache.length === 0 && !isLoadingInitialData
-                        ? "Problem data could not be loaded. Please try again later or refresh the page."
-                        : eliteUserSolutionsCache.size === 0 &&
-                          ELITE_USERS_FROM_HELPER.length > 0 &&
+                    {isLoadingDpp && !isLoadingInitialData && (
+                      <div className="flex flex-col justify-center items-center py-10 text-center">
+                        <Loader2 className="h-8 w-8 animate-spin text-teal-500 dark:text-teal-400" />
+                        <p className="ml-3 mt-2 text-md text-gray-600 dark:text-gray-400">
+                          Generating your DPP set...
+                        </p>
+                      </div>
+                    )}
+
+                    {!isLoadingDpp && !isLoadingInitialData && dppProblems && (
+                      <div className="space-y-6">
+                        <ProblemTable
+                          problems={dppProblems.warmUpProblems}
+                          title="Warm-up Problems"
+                          titleColor="text-orange-600 dark:text-orange-400"
+                          solvedProblemKeys={combinedSolvedKeys}
+                          onToggleProblem={handleToggleProblem}
+                        />
+                        <ProblemTable
+                          problems={dppProblems.mainProblems}
+                          title="Main Problems"
+                          titleColor="text-teal-600 dark:text-teal-400"
+                          solvedProblemKeys={combinedSolvedKeys}
+                          onToggleProblem={handleToggleProblem}
+                        />
+                        {dppProblems.mainProblems.length === 0 &&
+                          dppProblems.warmUpProblems.length === 0 &&
+                          !isLoadedDppStale && (
+                            <p className="text-center text-sm text-gray-500 dark:text-gray-400 py-4">
+                              No problems found matching the current criteria
+                              for {selectedDppLevel.name}. Try a different level
+                              or check back later.
+                            </p>
+                          )}
+                      </div>
+                    )}
+                    {!isLoadingDpp &&
+                      !isLoadingInitialData &&
+                      !dppProblems &&
+                      userState.currentUser &&
+                      !isLoadedDppStale && (
+                        <div className="text-center py-6 text-sm text-gray-500 dark:text-gray-400">
+                          {allProblemsCache.length === 0 &&
                           !isLoadingInitialData
-                        ? "Elite user solutions could not be fully loaded. DPP generation may be incomplete. You can still try generating a set."
-                        : isDppGeneratedForSelectedLevelToday // This case means dppProblems is null, but it was "generated" (i.e., loaded from LS but then cleared due to version/stale)
-                        ? `DPP for ${selectedDppLevel.name} needs to be regenerated or was empty.`
-                        : 'Select a level and click "Generate Set" to get your daily problems.'}
-                    </div>
-                  )}
-                {!userState.currentUser &&
-                  !isLoadingInitialData &&
-                  !isLoadedDppStale && (
-                    <div className="text-center py-6 text-sm text-gray-500 dark:text-gray-400">
-                      Please sign in to generate and view your Daily Practice
-                      Problems.
-                    </div>
-                  )}
+                            ? "Problem data could not be loaded. Please try again later or refresh the page."
+                            : eliteUserSolutionsCache.size === 0 &&
+                              ELITE_USERS_FROM_HELPER.length > 0 &&
+                              !isLoadingInitialData
+                            ? "Elite user solutions could not be fully loaded. DPP generation may be incomplete. You can still try generating a set."
+                            : isDppGeneratedForSelectedLevelToday // This case means dppProblems is null, but it was "generated" (i.e., loaded from LS but then cleared due to version/stale)
+                            ? `DPP for ${selectedDppLevel.name} needs to be regenerated or was empty.`
+                            : 'Select a level and click "Generate Set" to get your daily problems.'}
+                        </div>
+                      )}
+                  </>
+                )}
               </div>
               <DialogFooter className="px-6 py-4 border-t dark:border-dark-blue/50">
                 <DialogClose asChild>
