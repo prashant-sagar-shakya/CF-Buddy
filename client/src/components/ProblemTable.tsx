@@ -13,6 +13,8 @@ import {
   ChevronDown,
   ChevronUp,
   ExternalLink,
+  CheckSquare,
+  Square,
 } from "lucide-react";
 import { DppProblemEntry, getRatingClass } from "@/services/dppHelpers";
 
@@ -23,6 +25,7 @@ interface ProblemTableProps {
   title: string;
   titleColor: string;
   solvedProblemKeys?: Set<string>;
+  onToggleProblem?: (problemKey: string, isSolved: boolean) => void;
 }
 
 const ProblemTable: React.FC<ProblemTableProps> = ({
@@ -30,6 +33,7 @@ const ProblemTable: React.FC<ProblemTableProps> = ({
   title,
   titleColor,
   solvedProblemKeys,
+  onToggleProblem,
 }) => {
   const [expandedTags, setExpandedTags] = useState<Set<string>>(new Set());
 
@@ -58,16 +62,19 @@ const ProblemTable: React.FC<ProblemTableProps> = ({
         <Table className="min-w-full text-sm table-fixed">
           <TableHeader>
             <TableRow className="dark:border-dark-blue/30 bg-muted/50 dark:bg-dark-card/30">
+              <TableHead className="w-[8%] sm:w-[6%] px-1 py-2.5 text-center text-foreground dark:text-gray-300">
+                Status
+              </TableHead>
               <TableHead className="w-[35%] sm:w-[30%] pl-3 pr-1 py-2.5 text-foreground dark:text-gray-300">
                 Problem Name
               </TableHead>
               <TableHead className="w-[15%] sm:w-[10%] px-1 py-2.5 text-center text-foreground dark:text-gray-300">
                 Rating
               </TableHead>
-              <TableHead className="w-[25%] sm:w-[35%] px-1 py-2.5 text-center text-foreground dark:text-gray-300">
+              <TableHead className="w-[20%] sm:w-[25%] px-1 py-2.5 text-center text-foreground dark:text-gray-300">
                 Tags
               </TableHead>
-              <TableHead className="w-[25%] sm:w-[25%] pl-1 pr-3 py-2.5 text-center text-foreground dark:text-gray-300">
+              <TableHead className="w-[22%] sm:w-[29%] pl-1 pr-3 py-2.5 text-center text-foreground dark:text-gray-300">
                 Solutions
               </TableHead>
             </TableRow>
@@ -90,6 +97,30 @@ const ProblemTable: React.FC<ProblemTableProps> = ({
                       : "hover:bg-muted/50 dark:hover:bg-dark-card/50"
                   }`}
                 >
+                  <TableCell className="px-1 py-2.5 text-center align-middle">
+                    <div
+                      onClick={() =>
+                        onToggleProblem &&
+                        onToggleProblem(problemKey, !isSolved)
+                      }
+                      className={`p-1 rounded-md transition-colors ${
+                        isSolved
+                          ? "text-green-600 dark:text-green-400"
+                          : "text-gray-400 dark:text-gray-600"
+                      } ${
+                        onToggleProblem
+                          ? "cursor-pointer hover:bg-gray-100 dark:hover:bg-dark-blue/40"
+                          : "cursor-default"
+                      }`}
+                      title={isSolved ? "Mark as Unsolved" : "Mark as Solved"}
+                    >
+                      {isSolved ? (
+                        <CheckSquare size={20} />
+                      ) : (
+                        <Square size={20} />
+                      )}
+                    </div>
+                  </TableCell>
                   <TableCell className="pl-3 pr-1 py-2.5 align-middle">
                     <a
                       href={problemUrl}

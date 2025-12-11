@@ -119,15 +119,26 @@ const Header = () => {
   // New state to enforce "One DPP per day" strictly
   const [hasGeneratedDppToday, setHasGeneratedDppToday] = useState(false);
 
+  const [manuallySolvedKeys, setManuallySolvedKeys] = useState<Set<string>>(
+    new Set()
+  );
+
+  // Combine API solved keys and manually solved keys
+  const combinedSolvedKeys = useMemo(() => {
+    const combined = new Set(solvedProblemKeysCache);
+    manuallySolvedKeys.forEach((key) => combined.add(key));
+    return combined;
+  }, [solvedProblemKeysCache, manuallySolvedKeys]);
+
   // Initial Fetch of Today's DPPs
   useEffect(() => {
     const fetchDpp = async () => {
       // Don't reset everything blindly, we might be just refreshing data
-      // But for simplicity on mount/user-change:
       setDppProblems(null);
       setIsDppGeneratedForSelectedLevelToday(false);
       setIsLoadedDppStale(false);
       setHasGeneratedDppToday(false);
+      setManuallySolvedKeys(new Set()); // Reset manual keys on fresh fetch
 
       if (!user?.id) return;
 
@@ -147,6 +158,19 @@ const Header = () => {
           setIsDppGeneratedForSelectedLevelToday(true);
           setHasGeneratedDppToday(true); // Enforce strict check
 
+          // *** NEW: Load manual solved status from DB ***
+          const manualKeys = new Set<string>();
+          dppData.problems.forEach((p: any) => {
+            if (p.solved) {
+              // If marked solved in DB, treat as manually solved (or API solved, doesn't matter, just show as solved)
+              // But to distinguish: if it's NOT in API list, it must be manual.
+              // For simplicity, just add to manual keys if DB says it's solved.
+              // Logic check: apiSolved keys might lag, so DB source of truth is good.
+              manualKeys.add(`${p.contestId}-${p.index}`);
+            }
+          });
+          setManuallySolvedKeys(manualKeys);
+
           // Enforce the level from DB (Since only one allowed)
           const dbLevel = DPP_LEVELS_CONFIG.find(
             (l) => l.level === dppData.level
@@ -159,9 +183,22 @@ const Header = () => {
           setDppProblems(null);
           setIsDppGeneratedForSelectedLevelToday(false);
           setHasGeneratedDppToday(false);
+          setManuallySolvedKeys(new Set());
         }
-      } catch (error) {
-        console.log("No DPP found for today or error fetching:", error);
+      } catch (error: any) {
+        if (error.response && error.response.status === 404) {
+          // 404 is expected if no DPP exists for today yet
+          console.log("No DPP found for today.");
+          setDppProblems(null);
+        } else {
+          console.error("Error fetching DPP:", error);
+          toast({
+            title: "Connection Error",
+            description:
+              "Could not load your Daily Practice Problems. Is the server running?",
+            variant: "destructive",
+          });
+        }
       }
     };
 
@@ -172,6 +209,102 @@ const Header = () => {
     toast,
     // Avoid circular dependency with setDppProblems/etc.
   ]);
+
+  // ... (unchanged code) ...
+
+  const handleToggleProblem = useCallback(
+    (problemKey: string, isSolved: boolean) => {
+      setManuallySolvedKeys((prev) => {
+        const next = new Set(prev);
+        if (isSolved) {
+          next.add(problemKey);
+        } else {
+          next.delete(problemKey);
+        }
+        return next;
+      });
+    },
+    []
+  );
+
+  // Sync DPP progress with backend
+  useEffect(() => {
+    if (
+      !dppProblems ||
+      !user?.id ||
+      !isDppGeneratedForSelectedLevelToday ||
+      isLoadingInitialData ||
+      !userState.currentUser
+    )
+      return;
+
+    const today = getTodaysDateString();
+
+    const mainProblemsPayload = dppProblems.mainProblems.map((p) => {
+      const pKey = `${p.contestId}-${p.index}`;
+      const isSolved = combinedSolvedKeys.has(pKey);
+      return {
+        contestId: p.contestId,
+        index: p.index,
+        name: p.name,
+        rating: p.rating,
+        tags: p.tags,
+        link: `https://codeforces.com/problemset/problem/${p.contestId}/${p.index}`,
+        category: "main",
+        solved: isSolved, // Save the combined status
+        solvedByElite: p.solvedByElite,
+      };
+    });
+
+    const warmUpProblemsPayload = dppProblems.warmUpProblems.map((p) => {
+      const pKey = `${p.contestId}-${p.index}`;
+      const isSolved = combinedSolvedKeys.has(pKey);
+      return {
+        contestId: p.contestId,
+        index: p.index,
+        name: p.name,
+        rating: p.rating,
+        tags: p.tags,
+        link: `https://codeforces.com/problemset/problem/${p.contestId}/${p.index}`,
+        category: "warmup",
+        solved: isSolved, // Save the combined status
+        solvedByElite: p.solvedByElite,
+      };
+    });
+
+    const payload = {
+      userId: user.id,
+      handle: userState.currentUser,
+      date: today,
+      level: selectedDppLevel.level,
+      problems: [...mainProblemsPayload, ...warmUpProblemsPayload],
+    };
+
+    saveDpp(payload).catch((err) => console.error("Auto-sync DPP failed", err));
+  }, [
+    dppProblems,
+    solvedProblemKeysCache,
+    manuallySolvedKeys, // Added dependency
+    combinedSolvedKeys, // Added dependency
+    user?.id,
+    userState.currentUser,
+    selectedDppLevel.level,
+    isDppGeneratedForSelectedLevelToday,
+    isLoadingInitialData,
+  ]);
+
+  // ... (rest of Header) ...
+
+  // Update ProblemTable usage in JSX
+  /*
+  <ProblemTable
+      problems={dppProblems.warmUpProblems}
+      title="Warm-up Problems"
+      titleColor="text-orange-600 dark:text-orange-400"
+      solvedProblemKeys={combinedSolvedKeys}
+      onToggleProblem={handleToggleProblem}
+    />
+  */
 
   // ... (unchanged code) ...
 
@@ -346,7 +479,15 @@ const Header = () => {
       problems: [...mainProblemsPayload, ...warmUpProblemsPayload],
     };
 
-    saveDpp(payload).catch((err) => console.error("Auto-sync DPP failed", err));
+    saveDpp(payload).catch((err) => {
+      console.error("Auto-sync DPP failed", err);
+      toast({
+        title: "Sync Error",
+        description:
+          "Failed to save your progress. Please check your connection.",
+        variant: "destructive",
+      });
+    });
   }, [
     dppProblems,
     solvedProblemKeysCache,
@@ -628,7 +769,7 @@ const Header = () => {
         </div>
 
         <div className="flex items-center space-x-1 sm:space-x-2 flex-shrink-0">
-          {location.pathname !== "/dashboard" && (
+          {user && location.pathname !== "/dashboard" && (
             <Button
               variant="ghost"
               onClick={() => navigate("/dashboard")}
@@ -755,13 +896,15 @@ const Header = () => {
                       problems={dppProblems.warmUpProblems}
                       title="Warm-up Problems"
                       titleColor="text-orange-600 dark:text-orange-400"
-                      solvedProblemKeys={solvedProblemKeysCache}
+                      solvedProblemKeys={combinedSolvedKeys}
+                      onToggleProblem={handleToggleProblem}
                     />
                     <ProblemTable
                       problems={dppProblems.mainProblems}
                       title="Main Problems"
                       titleColor="text-teal-600 dark:text-teal-400"
-                      solvedProblemKeys={solvedProblemKeysCache}
+                      solvedProblemKeys={combinedSolvedKeys}
+                      onToggleProblem={handleToggleProblem}
                     />
                     {dppProblems.mainProblems.length === 0 &&
                       dppProblems.warmUpProblems.length === 0 &&

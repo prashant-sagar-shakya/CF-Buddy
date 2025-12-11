@@ -17,6 +17,31 @@ const getApiLanguage = (): "en" | "ru" => {
   return "en";
 };
 
+const fetchWithTimeout = async (
+  resource: string,
+  options: RequestInit = {}
+) => {
+  const { timeout = 15000 } = options as any; // 15s timeout
+
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeout);
+
+  try {
+    const response = await fetch(resource, {
+      ...options,
+      signal: controller.signal,
+    });
+    return response;
+  } catch (error: any) {
+    if (error.name === "AbortError") {
+      throw new Error(`Request timed out after ${timeout / 1000}s`);
+    }
+    throw error;
+  } finally {
+    clearTimeout(id);
+  }
+};
+
 // Primary error handler for API responses
 const handleResponse = async (response: Response) => {
   if (!response.ok) {
@@ -48,7 +73,7 @@ const handleResponse = async (response: Response) => {
 
 export const getUserInfo = async (handle: string): Promise<CodeforcesUser> => {
   const lang = getApiLanguage();
-  const response = await fetch(
+  const response = await fetchWithTimeout(
     `${API_BASE_URL}/user.info?handles=${handle}&lang=${lang}`
   );
   const result = await handleResponse(response); // handleResponse will throw on error
@@ -73,7 +98,7 @@ export const getUserSubmissions = async (
 ): Promise<CodeforcesSubmission[]> => {
   const lang = getApiLanguage();
   const apiUrl = `${API_BASE_URL}/user.status?handle=${handle}&from=1&count=10000&lang=${lang}`;
-  const response = await fetch(apiUrl);
+  const response = await fetchWithTimeout(apiUrl);
   const submissionsResult = await handleResponse(response); // handleResponse throws
 
   return submissionsResult.map(
@@ -124,7 +149,7 @@ export const getUserRatingHistory = async (
   handle: string
 ): Promise<CodeforcesRatingChange[]> => {
   const lang = getApiLanguage();
-  const response = await fetch(
+  const response = await fetchWithTimeout(
     `${API_BASE_URL}/user.rating?handle=${handle}&lang=${lang}`
   );
   return await handleResponse(response); // handleResponse throws
@@ -215,7 +240,7 @@ export const getAllProblems = async (
 
   const lang = getApiLanguage();
   try {
-    const response = await fetch(
+    const response = await fetchWithTimeout(
       `${API_BASE_URL}/problemset.problems?lang=${lang}`
     );
     const result = await handleResponse(response);

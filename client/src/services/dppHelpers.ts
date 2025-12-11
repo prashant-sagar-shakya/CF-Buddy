@@ -273,13 +273,9 @@ export const generateDppSet = (
 
           const problemKey = `${p.contestId}-${p.index}`;
 
-          // *** MODIFIED/STRICTER FILTER START ***
-          const eliteSolutions = eliteUserSolutionsForProblems.get(problemKey);
-          // Problem must be known to be solved by elites AND have a non-empty list of their solution info
-          if (!eliteSolutions || eliteSolutions.length === 0) {
-            return false;
-          }
-          // *** MODIFIED/STRICTER FILTER END ***
+          // *** MODIFIED: Relaxed filter ***
+          // We no longer strictly require elite solutions, so that problems can still be generated
+          // even if elite data is missing or incomplete for low ratings.
 
           if (solvedProblemKeysByCurrentUser.has(problemKey)) return false;
           if (pickedProblemKeys.has(problemKey)) return false;
@@ -287,14 +283,12 @@ export const generateDppSet = (
           return true;
         })
         .map((p_candidate) => {
-          // Renamed `p` to `p_candidate` to avoid confusion with outer scope `p` if any
-          // problemKey and eliteSolutions are known to be valid and non-empty here from the filter
           const problemKey = `${p_candidate.contestId!}-${p_candidate.index!}`;
           const eliteSolutionsForThisProblem =
-            eliteUserSolutionsForProblems.get(problemKey)!;
+            eliteUserSolutionsForProblems.get(problemKey) || [];
           return {
             ...p_candidate,
-            solvedByElite: eliteSolutionsForThisProblem, // This should always be a non-empty array now
+            solvedByElite: eliteSolutionsForThisProblem,
           };
         });
 
