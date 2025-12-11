@@ -11,6 +11,7 @@ import { useUser } from "@clerk/clerk-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 
 const Dashboard = () => {
   const { userState, linkHandle, unlinkHandle } = useUserContext();
@@ -36,6 +37,13 @@ const Dashboard = () => {
 
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8">
+      <Helmet>
+        <title>Dashboard | CF-Buddy - Your CP Command Center</title>
+        <meta
+          name="description"
+          content="Your central hub for Competitive Programming. Track daily practice problems, monitor user streaks, and filter Codeforces problems by rating on the CF-Buddy Dashboard."
+        />
+      </Helmet>
       <div className="problem-card shadow-sm hover:shadow-md transition-shadow p-6 bg-card rounded-lg">
         <h2 className="text-xl font-bold mb-4 text-green-600 dark:text-dark-green">
           Track Codeforces Users

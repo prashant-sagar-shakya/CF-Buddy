@@ -19,6 +19,7 @@ import Layout from "@/components/Layout";
 const queryClient = new QueryClient();
 
 import { dark } from "@clerk/themes";
+import { HelmetProvider } from "react-helmet-async";
 
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
@@ -27,39 +28,41 @@ if (!PUBLISHABLE_KEY) {
 }
 
 const App = () => (
-  <ClerkProvider
-    publishableKey={PUBLISHABLE_KEY}
-    afterSignOutUrl="/"
-    appearance={{
-      baseTheme: dark,
-      variables: { colorPrimary: "#8b5cf6" }, // Matching the primary purple
-    }}
-  >
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-          <UserProvider>
-            <BrowserRouter>
-              <Layout>
-                <Routes>
-                  <Route path="/" element={<IndexPageContent />} />
-                  <Route path="/dashboard" element={<Dashboard />} />
-                  <Route path="/analytics" element={<AnalyticsPage />} />
-                  <Route
-                    path="/analytics/:handleFromUrl"
-                    element={<AnalyticsPage />}
-                  />
-                  <Route path="*" element={<NotFoundPage />} />
-                </Routes>
-              </Layout>
-            </BrowserRouter>
-            <Toaster />
-            <Sonner />
-          </UserProvider>
-        </ThemeProvider>
-      </TooltipProvider>
-    </QueryClientProvider>
-  </ClerkProvider>
+  <HelmetProvider>
+    <ClerkProvider
+      publishableKey={PUBLISHABLE_KEY}
+      afterSignOutUrl="/"
+      appearance={{
+        baseTheme: dark,
+        variables: { colorPrimary: "#8b5cf6" }, // Matching the primary purple
+      }}
+    >
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+            <UserProvider>
+              <BrowserRouter>
+                <Layout>
+                  <Routes>
+                    <Route path="/" element={<IndexPageContent />} />
+                    <Route path="/dashboard" element={<Dashboard />} />
+                    <Route path="/analytics" element={<AnalyticsPage />} />
+                    <Route
+                      path="/analytics/:handleFromUrl"
+                      element={<AnalyticsPage />}
+                    />
+                    <Route path="*" element={<NotFoundPage />} />
+                  </Routes>
+                </Layout>
+              </BrowserRouter>
+              <Toaster />
+              <Sonner />
+            </UserProvider>
+          </ThemeProvider>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ClerkProvider>
+  </HelmetProvider>
 );
 
 export default App;

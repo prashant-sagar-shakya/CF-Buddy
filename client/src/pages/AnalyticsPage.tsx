@@ -14,6 +14,7 @@ import {
 import { generateAnalyticsReport } from "@/services/geminiService";
 import ReactMarkdown from "react-markdown";
 import { Loader2, Sparkles, BrainCircuit, Bot } from "lucide-react";
+import { Helmet } from "react-helmet-async";
 import { useToast } from "@/components/ui/use-toast";
 
 import RatingHistoryChart from "@/components/charts/RatingHistoryChart";
@@ -166,6 +167,21 @@ const AnalyticsPage: React.FC<AnalyticsPageProps> = ({ handleProp }) => {
 
   return (
     <div className="container mx-auto px-2 sm:px-4 py-8 space-y-10">
+      <Helmet>
+        <title>
+          {targetHandle
+            ? `${targetHandle}'s CP Analytics | CF-Buddy`
+            : "Codeforces Analytics & AI Insights | CF-Buddy"}
+        </title>
+        <meta
+          name="description"
+          content={
+            targetHandle
+              ? `Deep dive into ${targetHandle}'s Codeforces stats. View rating graphs, heatmaps, and AI-generated performance reviews on CF-Buddy.`
+              : "Analyze any Codeforces profile with AI. Get rating trends, solved problem breakdowns, and personalized improvement tips."
+          }
+        />
+      </Helmet>
       <div className="flex flex-col md:flex-row items-center justify-between gap-4">
         <h1 className="text-3xl md:text-5xl font-display font-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400">
           ANALYTICS <span className="text-primary">//</span>{" "}
