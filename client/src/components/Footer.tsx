@@ -3,7 +3,7 @@ import { Heart } from "lucide-react";
 
 const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
-  const portfolioLink = "https://my-first-portfolio-mu.vercel.app/";
+  const portfolioLink = "https://buildwithprashant.vercel.app/";
 
   return (
     <footer className="glass border-t border-white/10 text-muted-foreground py-4 mt-auto w-full z-10">
