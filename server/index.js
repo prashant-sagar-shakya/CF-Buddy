@@ -7,19 +7,30 @@ const app = express();
 
 // Middleware
 app.use(cors());
-app.use(cors());
 app.use(express.json({ limit: "10mb" }));
 
 // Database Connection
-const MONGODB_URI = process.env.VITE_MONGODB_URI;
+const MONGODB_URI =
+  process.env.MONGODB_URI ||
+  process.env.MONGO_URI ||
+  process.env.VITE_MONGODB_URI;
 
-mongoose
-  .connect(MONGODB_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .then(() => console.log("MongoDB Connected"))
-  .catch((err) => console.error("MongoDB Connection Error:", err));
+if (!MONGODB_URI) {
+  console.error(
+    "FATAL ERROR: MONGODB_URI is not set! Please configure MONGODB_URI or MONGO_URI in your environment variables."
+  );
+} else {
+  mongoose
+    .connect(MONGODB_URI, {
+      serverSelectionTimeoutMS: 5000,
+    })
+    .then(() => console.log("MongoDB Connected Successfully"))
+    .catch((err) => console.error("MongoDB Connection Error:", err.message));
+}
+
+mongoose.connection.on("disconnected", () => {
+  console.warn("MongoDB disconnected.");
+});
 
 // Routes
 app.use("/api/dpp", require("./routes/dpp"));

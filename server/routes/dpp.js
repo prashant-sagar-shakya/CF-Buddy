@@ -1,6 +1,18 @@
 const express = require("express");
 const router = express.Router();
+const mongoose = require("mongoose");
 const Dpp = require("../models/Dpp");
+
+// Guard: fail fast if MongoDB is not connected instead of buffering for 10s
+router.use((req, res, next) => {
+  if (mongoose.connection.readyState !== 1) {
+    return res.status(503).json({
+      error:
+        "Database is not connected. Please verify your MONGODB_URI and MongoDB Atlas Network Access (allow 0.0.0.0/0).",
+    });
+  }
+  next();
+});
 
 // Save or Update DPP
 router.post("/", async (req, res) => {

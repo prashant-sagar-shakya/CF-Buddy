@@ -1,5 +1,5 @@
 // Header.tsx
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { MdOutlineDashboard } from "react-icons/md";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -119,6 +119,11 @@ const Header = () => {
   const [isLoadedDppStale, setIsLoadedDppStale] = useState(false);
   // New state to enforce "One DPP per day" strictly
   const [hasGeneratedDppToday, setHasGeneratedDppToday] = useState(false);
+
+  const isFetchingRef = useRef(false);
+  const hasFetchedEliteRef = useRef(false);
+  const fetchedUserHandleRef = useRef<string | null>(null);
+  const hasFetchedProblemsRef = useRef(false);
 
   const [manuallySolvedKeys, setManuallySolvedKeys] = useState<Set<string>>(
     new Set()
@@ -311,101 +316,125 @@ const Header = () => {
 
   useEffect(() => {
     const executeFetches = async () => {
-      if (allProblemsCache.length === 0) {
-        try {
-          const problems = await getAllProblems();
-          setAllProblemsCache(problems);
-        } catch (error) {
-          console.error("Failed to pre-fetch all problems for DPP:", error);
-          toast({
-            title: "DPP Error",
-            description: "Could not load problemset.",
-          });
-        }
-      }
+      if (isFetchingRef.current) return;
+      isFetchingRef.current = true;
+      setIsLoadingInitialData(true);
 
-      if (userState.currentUser && solvedProblemKeysCache.size === 0) {
-        try {
-          const submissions = await getUserSubmissions(userState.currentUser);
-          const solvedKeys = new Set<string>(
-            submissions
-              .filter(
-                (s) =>
-                  s.verdict === "OK" && s.problem.contestId && s.problem.index
-              )
-              .map((s) => `${s.problem.contestId}-${s.problem.index}`)
-          );
-          setSolvedProblemKeysCache(solvedKeys);
-        } catch (error) {
-          console.error(
-            `Failed to fetch solved keys for ${userState.currentUser}:`,
-            error
-          );
-          setSolvedProblemKeysCache(new Set());
-          toast({
-            title: "User Data Error",
-            description: `Could not load your solved problems.`,
-          });
-        }
-      }
-
-      if (
-        eliteUserSolutionsCache.size === 0 &&
-        ELITE_USERS_FROM_HELPER.length > 0
-      ) {
-        try {
-          const eliteSubmissionsPromises = ELITE_USERS_FROM_HELPER.map(
-            (handle) =>
-              getUserSubmissions(handle)
-                .then((submissions) => ({ handle, submissions }))
-                .catch((error) => {
-                  console.warn(
-                    `Failed to fetch submissions for elite user ${handle} (for DPP):`,
-                    error
-                  );
-                  return { handle, submissions: [] as CodeforcesSubmission[] };
-                })
-          );
-          const eliteSubmissionsResults = await Promise.all(
-            eliteSubmissionsPromises
-          );
-          const validResults = eliteSubmissionsResults.filter(
-            (r) => r !== null
-          ) as { handle: string; submissions: CodeforcesSubmission[] }[];
-          const processedSolutions = processEliteUserSubmissions(validResults);
-          setEliteUserSolutionsCache(processedSolutions);
-
-          if (
-            processedSolutions.size === 0 &&
-            ELITE_USERS_FROM_HELPER.length > 0
-          ) {
+      try {
+        if (!hasFetchedProblemsRef.current && allProblemsCache.length === 0) {
+          try {
+            const problems = await getAllProblems();
+            setAllProblemsCache(problems);
+            hasFetchedProblemsRef.current = true;
+          } catch (error) {
+            console.error("Failed to pre-fetch all problems for DPP:", error);
+            hasFetchedProblemsRef.current = true; // Prevent retry loop on failure
             toast({
-              title: "Elite Data Issue",
-              description:
-                "Could not fetch solutions for any elite users. DPP may not generate as expected.",
-              variant: "destructive",
-              duration: 7000,
+              title: "DPP Error",
+              description: "Could not load problemset.",
             });
           }
-        } catch (error) {
-          console.error(
-            "Failed to fetch or process elite user submissions for DPP:",
-            error
-          );
-          setEliteUserSolutionsCache(new Map());
-          toast({
-            title: "DPP Data Error",
-            description: "Could not load elite user solutions.",
-          });
         }
+
+        if (
+          userState.currentUser &&
+          fetchedUserHandleRef.current !== userState.currentUser
+        ) {
+          try {
+            const submissions = await getUserSubmissions(userState.currentUser);
+            const solvedKeys = new Set<string>(
+              submissions
+                .filter(
+                  (s) =>
+                    s.verdict === "OK" && s.problem.contestId && s.problem.index
+                )
+                .map((s) => `${s.problem.contestId}-${s.problem.index}`)
+            );
+            setSolvedProblemKeysCache(solvedKeys);
+            fetchedUserHandleRef.current = userState.currentUser;
+          } catch (error) {
+            console.error(
+              `Failed to fetch solved keys for ${userState.currentUser}:`,
+              error
+            );
+            setSolvedProblemKeysCache(new Set());
+            fetchedUserHandleRef.current = userState.currentUser; // Prevent retry loop on failure
+            toast({
+              title: "User Data Error",
+              description: `Could not load your solved problems.`,
+            });
+          }
+        }
+
+        if (
+          !hasFetchedEliteRef.current &&
+          ELITE_USERS_FROM_HELPER.length > 0
+        ) {
+          hasFetchedEliteRef.current = true;
+          try {
+            const validResults: {
+              handle: string;
+              submissions: CodeforcesSubmission[];
+            }[] = [];
+
+            for (const handle of ELITE_USERS_FROM_HELPER) {
+              try {
+                const submissions = await getUserSubmissions(handle);
+                validResults.push({ handle, submissions });
+              } catch (error) {
+                console.warn(
+                  `Failed to fetch submissions for elite user ${handle} (for DPP):`,
+                  error
+                );
+                validResults.push({
+                  handle,
+                  submissions: [] as CodeforcesSubmission[],
+                });
+              }
+              // Small delay to prevent Codeforces 429 rate limits
+              await new Promise((resolve) => setTimeout(resolve, 200));
+            }
+
+            const processedSolutions = processEliteUserSubmissions(validResults);
+            setEliteUserSolutionsCache(processedSolutions);
+
+            if (
+              processedSolutions.size === 0 &&
+              ELITE_USERS_FROM_HELPER.length > 0
+            ) {
+              toast({
+                title: "Elite Data Issue",
+                description:
+                  "Could not fetch solutions for any elite users. DPP may not generate as expected.",
+                variant: "destructive",
+                duration: 7000,
+              });
+            }
+          } catch (error) {
+            console.error(
+              "Failed to fetch or process elite user submissions for DPP:",
+              error
+            );
+            setEliteUserSolutionsCache(new Map());
+            toast({
+              title: "DPP Data Error",
+              description: "Could not load elite user solutions.",
+            });
+          }
+        }
+      } finally {
+        isFetchingRef.current = false;
+        setIsLoadingInitialData(false);
       }
     };
 
-    const needsProblemFetch = allProblemsCache.length === 0;
+    const needsProblemFetch =
+      !hasFetchedProblemsRef.current && allProblemsCache.length === 0;
     const needsUserKeysFetch =
-      !!userState.currentUser && solvedProblemKeysCache.size === 0;
+      !!userState.currentUser &&
+      fetchedUserHandleRef.current !== userState.currentUser;
     const needsEliteSolutionsFetch =
-      eliteUserSolutionsCache.size === 0 && ELITE_USERS_FROM_HELPER.length > 0;
+      !hasFetchedEliteRef.current && ELITE_USERS_FROM_HELPER.length > 0;
 
     const shouldInitiateFetch =
       needsProblemFetch ||
@@ -415,25 +444,11 @@ const Header = () => {
         (needsProblemFetch || needsUserKeysFetch || needsEliteSolutionsFetch));
 
     if (shouldInitiateFetch) {
-      setIsLoadingInitialData(true);
-      executeFetches().finally(() => {
-        setIsLoadingInitialData(false);
-      });
-    } else if (isLoadingInitialData && !shouldInitiateFetch) {
+      executeFetches();
+    } else {
       setIsLoadingInitialData(false);
     }
-  }, [
-    userState.currentUser,
-    toast,
-    allProblemsCache.length,
-    eliteUserSolutionsCache.size,
-    solvedProblemKeysCache.size,
-    isDppDialogOpen,
-    setAllProblemsCache,
-    setSolvedProblemKeysCache,
-    setEliteUserSolutionsCache,
-    isLoadingInitialData,
-  ]);
+  }, [userState.currentUser, isDppDialogOpen]);
 
   // Sync DPP progress with backend
   useEffect(() => {

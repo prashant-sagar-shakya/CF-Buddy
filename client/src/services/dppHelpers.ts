@@ -40,7 +40,7 @@ export interface DPPLevel {
 export const ELITE_USERS_DPP = [
   "tourist",
   "jiangly",
-  "orzdevinwang",
+  "zhoukangyang",
   "Priyansh31dec",
 ];
 
